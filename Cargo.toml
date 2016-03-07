@@ -1,0 +1,15 @@
+[package]
+name = "sharing"
+version = "0.1.0"
+authors = ["srdja <i@srdja.me>"]
+build = "build.rs"
+
+[dependencies]
+libc = "*"
+mime = "0.1.3"
+hyper = "*"
+getopts = "*"
+regex = "*"
+
+[build-dependencies]
+gcc = "*"
