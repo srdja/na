@@ -45,6 +45,81 @@ impl Clone for Buffer {
 }
 
 
+pub struct WriteBuffer<'a> {
+    buffer: &'a mut [u8],
+    writen: usize,
+}
+
+
+impl<'a> WriteBuffer<'a> {
+    pub fn new(b: &'a mut [u8]) -> WriteBuffer<'a> {
+        WriteBuffer {
+            buffer: b,
+            writen: 0
+        }
+    }
+}
+
+
+impl<'a> Write for WriteBuffer<'a> {
+    fn write(&mut self, buff: &[u8]) -> io::Result<usize> {
+        let w = self.writen;
+        let l = self.buffer.len();
+
+        let mut writen = 0;
+        for (to, from) in self.buffer[w..l].iter_mut().zip(buff.iter()) {
+            writen += 1;
+            *to = *from
+        }
+        self.writen += writen;
+        Ok(writen)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+
+pub struct ReadBuffer<'a> {
+    buffer: &'a[u8],
+    read:   usize,
+}
+
+
+impl<'a> ReadBuffer<'a> {
+    pub fn new(b: &'a [u8]) -> ReadBuffer<'a> {
+        ReadBuffer {
+            buffer: b,
+            read:   0,
+        }
+    }
+}
+
+
+impl<'a> Read for ReadBuffer<'a> {
+    fn read(&mut self, buff: &mut [u8]) -> io::Result<usize> {
+        let max_len = buff.len();
+        let available_bytes = self.buffer.len() - self.read;
+
+        let mut read = 0;
+        let b = self.read;
+        let e;
+        if available_bytes > buff.len() {
+            e = self.read + buff.len();
+        } else {
+            e = self.read + available_bytes;
+        }
+        for (from, to) in self.buffer[b..e].iter().zip(buff.iter_mut()) {
+            read += 1;
+            *to = *from
+        }
+        self.read += read;
+        Ok(read)
+    }
+}
+
+
 struct NonWriter {
     // can't have an empty struct
     i_exist: bool,
@@ -52,6 +127,7 @@ struct NonWriter {
 
 
 impl Write for NonWriter {
+
     fn write(&mut self, b: &[u8]) -> io::Result<usize> {
         Ok(b.len())
     }
@@ -172,4 +248,63 @@ pub fn write_stream(input:    &mut Read,
         }
     }
     Ok(write_total)
+}
+
+
+#[test]
+pub fn test_read_buffer() {
+    let mut buff: [u8; 1000] = [42; 1000];
+    buff[7  ] = 6;
+    buff[299] = 3;
+    buff[999] = 2;
+    buff[300] = 5;
+
+    let mut reader = ReadBuffer::new(&buff);
+    let mut into: [u8; 300] = [0; 300];
+
+    assert_eq!(300, reader.read(&mut into).unwrap());
+    assert_eq!(3, into[299]);
+    assert_eq!(6, into[7]);
+    assert_eq!(300, reader.read(&mut into).unwrap());
+    assert_eq!(5, into[0]);
+    assert_eq!(300, reader.read(&mut into).unwrap());
+    assert_eq!(100, reader.read(&mut into).unwrap());
+    assert_eq!(2, into[99]);
+}
+
+
+#[test]
+pub fn test_write_buffer() {
+    let mut buffer: [u8; 1000] = [0; 1000];
+
+    {
+        let mut writer = WriteBuffer::new(&mut buffer);
+        let mut input: [u8; 1000] = [42; 1000];
+        input[0  ] = 1;
+        input[299] = 2;
+        input[300] = 3;
+        input[999] = 4;
+
+        assert_eq!(150, writer.write(&input[0..150]).unwrap());
+        assert_eq!(177, writer.write(&input[150..327]).unwrap());
+        assert_eq!(273, writer.write(&input[327..600]).unwrap());
+        assert_eq!(300, writer.write(&input[600..900]).unwrap());
+        assert_eq!(100, writer.write(&input[900..1000]).unwrap());
+    }
+
+    assert_eq!(1, buffer[0]);
+    assert_eq!(2, buffer[299]);
+    assert_eq!(3, buffer[300]);
+    assert_eq!(4, buffer[999]);
+}
+
+
+#[test]
+pub fn test_write_stream_case1() {
+
+}
+
+#[test]
+pub fn test_write_stream_case2() {
+
 }
