@@ -18,9 +18,6 @@ use std::env;
 
 
 fn main() {
-    // root should be the directory from which the program is running to that it automatically
-    // seves itself for download
-
     let current_dir = env::current_dir().unwrap();
 
     let address = ip::get_local_addresses().unwrap();
