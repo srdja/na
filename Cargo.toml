@@ -1,5 +1,5 @@
 [package]
-name = "sharing"
+name = "na"
 version = "0.1.0"
 authors = ["srdja <i@srdja.me>"]
 build = "build.rs"
