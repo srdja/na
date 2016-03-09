@@ -41,7 +41,8 @@ impl RequestHandler {
 
     fn handle_get(&self, req: Request, mut res: Response) {
         let resources = self.directory.list_available_resources();
-        let uri = req.uri.to_string();
+        let uri_raw = req.uri.to_string();
+        let uri = uri_raw.replace("%20", " ");
 
         if self.verbose {
             println!("Receiving a GET request from {} for {}",
@@ -96,10 +97,10 @@ impl RequestHandler {
         let file_name = "filename=";
         let mut name  = "".to_string();
 
-        for s in form.split(" ") {
+        for s in form.split(";") {
             if s.contains(file_name) {
                 let tmp: Vec<&str> = s.split("\"").collect();
-                if tmp.len() != 2 && tmp[0] != file_name {
+                if tmp.len() != 3 && tmp[0] != file_name {
                     return Err("Error: Malformed form".to_string());
                 }
                 name = tmp[1].to_string();
@@ -180,6 +181,7 @@ impl RequestHandler {
         // FIXME checks
 
         let file_name = self.parse_post_form(&mut req).unwrap();
+        println!("{}",file_name);
         let ph;
         {
             let ct = req.headers.get::<ContentType>().unwrap();
@@ -195,7 +197,7 @@ impl RequestHandler {
         let w;
         {
             let mut file = File::create(path).unwrap();
-            w = stream::write_stream(&mut req, &mut file, 30000, boundary.to_string(), false).unwrap();
+            w = stream::write_stream(&mut req, &mut file, 4000000000, boundary.to_string(), false).unwrap();
         }
         println!("Wrote {} bytes to {}", w, pathcl);
         {
