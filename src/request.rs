@@ -27,7 +27,6 @@ pub struct RequestHandler {
 }
 
 
-
 impl RequestHandler {
 
 
@@ -48,6 +47,7 @@ impl RequestHandler {
                      req.remote_addr.to_string(),
                      uri);
         }
+
         if uri == "/" {
             res.send(ui::render_ui(&resources).as_bytes()).unwrap();
             return;
@@ -110,6 +110,58 @@ impl RequestHandler {
         Ok(name)
     }
 
+    // FIXME: stream reading buffer should be the same as the body reader
+
+    /// Parses the form part of the stream and returns the name of the file.
+    ///
+    /// reads the stream until it finds the filename
+    fn parse_post_form(&self, req: &mut Request) -> Result<String, String> {
+        const MAX_LEN: usize = 512;
+
+        let mut tmp_buff: [u8; 1] = [0; 1];
+        let mut buff: [u8; MAX_LEN] = [0; MAX_LEN];
+        let mut read_total: usize = 0;
+        let mut end_reached = false;
+
+        // Read the form part of the stream
+        while !end_reached {
+            if read_total >= MAX_LEN {
+                return Err(format!("Error: Post form is too long > {}", MAX_LEN));
+            }
+            let read = req.read(&mut tmp_buff).unwrap();
+            // Stream end is reached before the form end
+            if read < 1 {
+                return Err("Error: Malformed form".to_string());
+            }
+            // Check if two consecutive new lines have been read
+            if read_total > 4 &&
+                tmp_buff[0]          == ('\n' as u8) &&
+                buff[read_total - 1] == ('\r' as u8) &&
+                buff[read_total - 2] == ('\n' as u8) &&
+                buff[read_total - 3] == ('\r' as u8 )
+            {
+                end_reached = true;
+            }
+            buff[read_total] = tmp_buff[0].clone();
+            read_total = read_total + read;
+        }
+
+        // Stringify the form buffer
+        let form_raw = str::from_utf8(&buff[0..read_total]);
+        let form;
+
+        match form_raw {
+            Err(e) => return Err(e.to_string()),
+            Ok (f) => {
+                if f.len() < 50 { // totaly arbitrary
+                    return Err("Error: Malformed form".to_string())
+                }
+                form = f
+            }
+        }
+
+        self.get_filename_from_form(form)
+    }
 
     /// Return status code
     fn handle_post(&self, mut req: Request, mut res: Response) -> Result<usize, String> {
@@ -123,27 +175,26 @@ impl RequestHandler {
             return Err("Invalid request uri".to_string());
         }
 
-        let adv = stream::advance_stream(&mut req, 500, "filename=\"".to_string(), true);
-        println!("{}", adv.unwrap());
-
-        let mut name_buffer: [u8; 200] = [0; 200];
-        let result;
-        {
-            let mut name_writer = stream::WriteBuffer::new(&mut name_buffer);
-            result = stream::write_stream(&mut req, &mut name_writer, 200, "\"".to_string(), false).unwrap();
-        }
-        println!("name is {}", result);
         // advance to filename with no write stream
+        // stream::advance_stream(input, no_stream, 5000, "filename="")
 
-        // headers.get_boundary()
+        // read filename
+        // stream::write_stream(input, someting, 3000, "\"")
 
-       // let file_name = self.parse_post_form(&mut req).unwrap();
+        // advance to file start
+        // stream::advance_stream(input, no_stream, "\r\n\r\n")
+
+        // stream::write_stream(req, file, file_length, boundary);
+
+
+        //   let boundary  = req.headers.get::<ContendBoundary>();
+
+
+        let file_name = self.parse_post_form(&mut req).unwrap();
 
         // Borrow scope
-        {
-            let stat: &mut StatusCode = res.status_mut();
-            *stat = StatusCode::Found;
-        }
+        {let stat: &mut StatusCode = res.status_mut();
+         *stat = StatusCode::Found;}
 
         res.headers_mut().set(Location("/".to_string()));
         res.send(b"Something").unwrap();
