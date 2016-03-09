@@ -195,7 +195,6 @@ pub fn write_stream(input:     &mut Read,
                 // +---+---+---+---+---+---+
                 //
                 // Write previously queued buffer if one exists
-                println!("OoOOoO0Ooo)00");
                 if queue_buff.used > 0 {
                     write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
                 }
