@@ -1,5 +1,5 @@
 ///
-/// Stream functions
+/// Stream parsing functions
 ///
 
 
@@ -12,7 +12,7 @@ use std::io;
 struct Buffer {
     /// Buffer storage
     buff:         [u8; 1024],
-    /// Number of bytes writen to the buffer
+    /// Number of bytes written to the buffer
     used:         usize,
     /// Number of bytes that are not a part of the boundary
     non_boundary: usize,
@@ -47,7 +47,7 @@ impl Clone for Buffer {
 
 pub struct WriteBuffer<'a> {
     buffer: &'a mut [u8],
-    writen: usize,
+    written: usize,
 }
 
 
@@ -55,7 +55,7 @@ impl<'a> WriteBuffer<'a> {
     pub fn new(b: &'a mut [u8]) -> WriteBuffer<'a> {
         WriteBuffer {
             buffer: b,
-            writen: 0
+            written: 0
         }
     }
 }
@@ -63,16 +63,16 @@ impl<'a> WriteBuffer<'a> {
 
 impl<'a> Write for WriteBuffer<'a> {
     fn write(&mut self, buff: &[u8]) -> io::Result<usize> {
-        let w = self.writen;
+        let w = self.written;
         let l = self.buffer.len();
 
-        let mut writen = 0;
+        let mut written = 0;
         for (to, from) in self.buffer[w..l].iter_mut().zip(buff.iter()) {
-            writen += 1;
+            written += 1;
             *to = *from
         }
-        self.writen += writen;
-        Ok(writen)
+        self.written += written;
+        Ok(written)
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -81,12 +81,14 @@ impl<'a> Write for WriteBuffer<'a> {
 }
 
 
+#[allow(dead_code)]
 pub struct ReadBuffer<'a> {
     buffer: &'a[u8],
     read:   usize,
 }
 
 
+#[allow(dead_code)]
 impl<'a> ReadBuffer<'a> {
     pub fn new(b: &'a [u8]) -> ReadBuffer<'a> {
         ReadBuffer {
@@ -144,8 +146,8 @@ pub fn advance_stream(input:    &mut Read,
                       max_len:  usize,
                       boundary: String) -> io::Result<usize> {
     let mut non_writer = NonWriter {i_exist: true};
-    try!(write_stream(input, &mut non_writer, max_len, boundary));
-    Ok(1)
+    let written = try!(write_stream(input, &mut non_writer, max_len, boundary));
+    Ok(written)
 }
 
 
