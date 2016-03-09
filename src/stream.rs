@@ -150,6 +150,7 @@ pub fn write_stream(input:     &mut Read,
         write_buff.non_boundary = 0;
         read_total += write_buff.used;
 
+        // No more data
         if write_buff.used == 0 {
             if queue_buff.used > 0 {
                 write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
@@ -196,6 +197,9 @@ pub fn write_stream(input:     &mut Read,
                 // Write previously queued buffer if one exists
                 if queue_buff.used > 0 {
                     write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
+                    queue_buff.used = 0;
+                    queue_buff.matched = 0;
+                    queue_buff.non_boundary = 0;
                 }
                 write_total += try!(output.write(&write_buff.buff[0..(write_buff.non_boundary)]));
             }  else {
@@ -219,6 +223,9 @@ pub fn write_stream(input:     &mut Read,
             //
             if queue_buff.used > 0 {
                 write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
+                queue_buff.used = 0;
+                queue_buff.matched = 0;
+                queue_buff.non_boundary = 0;
             }
             // copy write buffer to queue buffer
             queue_buff = write_buff.clone();
@@ -226,6 +233,9 @@ pub fn write_stream(input:     &mut Read,
             // No match found.
             if queue_buff.used > 0 {
                 write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
+                queue_buff.used = 0;
+                queue_buff.matched = 0;
+                queue_buff.non_boundary = 0;
             }
             write_total += try!(output.write(&write_buff.buff[0..(write_buff.used)]));
         }
