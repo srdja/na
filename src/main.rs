@@ -26,10 +26,10 @@ fn main() {
     let address = ip::get_local_addresses().unwrap();
     let addr_and_port = format!("{}:9000", address[0]);
 
-    println!("Starting server at {}", addr_and_port);
-
     let directory   = Directory::new(current_dir.to_str().unwrap().to_string());
     let req_handler = RequestHandler::new(directory, true);
+
+    println!("Serving contents of {} at {}", current_dir.to_str().unwrap(), addr_and_port);
 
     Server::http(&*addr_and_port).unwrap()
             .handle(req_handler).unwrap();
