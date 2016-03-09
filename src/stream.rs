@@ -142,11 +142,12 @@ impl Write for NonWriter {
 
 /// Advances the stream until the boundary sequence has been reached, or
 /// until max_len bytes have been read.
-pub fn advance_stream(input:    &mut Read,
-                      max_len:  usize,
-                      boundary: String) -> io::Result<usize> {
+pub fn advance_stream(input:     &mut Read,
+                      max_len:   usize,
+                      boundary:  String,
+                      inclusive: bool) -> io::Result<usize> {
     let mut non_writer = NonWriter {i_exist: true};
-    let written = try!(write_stream(input, &mut non_writer, max_len, boundary));
+    let written = try!(write_stream(input, &mut non_writer, max_len, boundary, inclusive));
     Ok(written)
 }
 
@@ -158,10 +159,11 @@ pub fn advance_stream(input:    &mut Read,
 ///
 /// Bytes that are read are written to output stream. The boundary
 /// sequence, if found, is not written.
-pub fn write_stream(input:    &mut Read,
-                    output:   &mut Write,
-                    max_len:  usize,
-                    boundary: String) -> io::Result<usize>
+pub fn write_stream(input:     &mut Read,
+                    output:    &mut Write,
+                    max_len:   usize,
+                    boundary:  String,
+                    inclusive: bool) -> io::Result<usize>
 {
 
     let boundary_buffer = boundary.as_bytes();
@@ -226,7 +228,12 @@ pub fn write_stream(input:    &mut Read,
                 if queue_buff.used > 0 {
                     write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
                 }
-                write_total += try!(output.write(&write_buff.buff[0..(write_buff.non_boundary)]));
+                if inclusive {
+                    write_total += try!(output.write
+                                        (&write_buff.buff[0..(write_buff.non_boundary + boundary.len())]));
+                } else {
+                    write_total += try!(output.write(&write_buff.buff[0..(write_buff.non_boundary)]));
+                }
             }  else {
                 // Case 2: the boundary match is split across the queued buffer and the write buffer.
                 //
@@ -235,7 +242,15 @@ pub fn write_stream(input:    &mut Read,
                 // | 1 | 0 | 7 | k | o | B |     | A | R |   |   |   |   |
                 // +---+---+---+---+---+---+     +---+---+---+---+---+---+
                 //
-                write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.non_boundary)]));
+                if inclusive {
+                    let b_len = boundary.len();
+                    let q_len = queue_buff.buff.len();
+                    let leftover = b_len - (q_len - queue_buff.non_boundary);
+                    write_total += try!(output.write(&queue_buff.buff));
+                    write_total += try!(output.write(&write_buff.buff[0..leftover]));
+                } else {
+                    write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.non_boundary)]));
+                }
             }
             break; // exit loop
         } else if boundary_cursor > 0 {
@@ -338,7 +353,7 @@ pub fn test_write_stream_case1() {
     {
         let mut reader = ReadBuffer::new(&input);
         let mut writer = WriteBuffer::new(&mut output);
-        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string()).unwrap();
+        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string(), false).unwrap();
     }
     assert_eq!(1024, w);
     assert_eq!(output[1023], 42);
@@ -372,7 +387,7 @@ pub fn test_write_stream_case2() {
     {
         let mut reader = ReadBuffer::new(&input);
         let mut writer = WriteBuffer::new(&mut output);
-        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string()).unwrap();
+        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string(), false).unwrap();
     }
     assert_eq!(output[1523], 42);
     assert_eq!(1524, w);
@@ -399,7 +414,7 @@ pub fn test_write_stream_case3() {
     {
         let mut reader = ReadBuffer::new(&input);
         let mut writer = WriteBuffer::new(&mut output);
-        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string()).unwrap();
+        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string(), false).unwrap();
     }
     assert_eq!(1521, w);
     assert_eq!(output[1520], 42);
@@ -418,7 +433,7 @@ pub fn test_write_stream_case4() {
     {
         let mut reader = ReadBuffer::new(&input);
         let mut writer = WriteBuffer::new(&mut output);
-        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string()).unwrap();
+        w = write_stream(&mut reader, &mut writer, 3000, "foobar".to_string(), false).unwrap();
     }
     assert_eq!(2048, w);
     assert_eq!(output[2047], 42);
@@ -445,7 +460,7 @@ pub fn test_write_stream_case5() {
     {
         let mut reader = ReadBuffer::new(&input);
         let mut writer = WriteBuffer::new(&mut output);
-        w = write_stream(&mut reader, &mut writer, 1450, "foobar".to_string()).unwrap();
+        w = write_stream(&mut reader, &mut writer, 1450, "foobar".to_string(), false).unwrap();
     }
     assert_eq!(1450, w);
     assert_eq!(output[1449], 42);
