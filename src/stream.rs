@@ -122,36 +122,6 @@ impl<'a> Read for ReadBuffer<'a> {
 }
 
 
-struct NonWriter {
-    // can't have an empty struct
-    i_exist: bool,
-}
-
-
-impl Write for NonWriter {
-
-    fn write(&mut self, b: &[u8]) -> io::Result<usize> {
-        Ok(b.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
-}
-
-
-/// Advances the stream until the boundary sequence has been reached, or
-/// until max_len bytes have been read.
-pub fn advance_stream(input:     &mut Read,
-                      max_len:   usize,
-                      boundary:  String,
-                      inclusive: bool) -> io::Result<usize> {
-    let mut non_writer = NonWriter {i_exist: true};
-    let written = try!(write_stream(input, &mut non_writer, max_len, boundary, inclusive));
-    Ok(written)
-}
-
-
 /// Reads and advances the input stream until one of the conditions is met:
 ///   1. the boundary sequence is reached
 ///   2. max_len number of bytes have been read, or
@@ -177,7 +147,7 @@ pub fn write_stream(input:     &mut Read,
     let mut write_total:     usize = 0;
 
     loop {
-        write_buff.used = input.read(&mut write_buff.buff).unwrap();
+        write_buff.used = try!(input.read(&mut write_buff.buff));
         write_buff.non_boundary = 0;
         read_total += write_buff.used;
 
@@ -205,7 +175,7 @@ pub fn write_stream(input:     &mut Read,
         }
 
         // Max len is reached before the boundary
-        if (read_total >= max_len) && (max_len <= (write_total + write_buff.non_boundary)) {
+       if (read_total >= max_len) && (max_len <= (write_total + write_buff.non_boundary)) {
             if queue_buff.used > 0 {
                 write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
             }
@@ -225,6 +195,7 @@ pub fn write_stream(input:     &mut Read,
                 // +---+---+---+---+---+---+
                 //
                 // Write previously queued buffer if one exists
+                println!("OoOOoO0Ooo)00");
                 if queue_buff.used > 0 {
                     write_total += try!(output.write(&queue_buff.buff[0..(queue_buff.used)]));
                 }
@@ -357,6 +328,7 @@ pub fn test_write_stream_case1() {
     }
     assert_eq!(1024, w);
     assert_eq!(output[1023], 42);
+    assert_eq!(output[1024], 0);
 }
 
 
@@ -391,6 +363,7 @@ pub fn test_write_stream_case2() {
     }
     assert_eq!(output[1523], 42);
     assert_eq!(1524, w);
+    assert_eq!(output[1524], 0);
 }
 
 
@@ -418,6 +391,7 @@ pub fn test_write_stream_case3() {
     }
     assert_eq!(1521, w);
     assert_eq!(output[1520], 42);
+    assert_eq!(output[1521], 0);
 }
 
 
@@ -464,4 +438,24 @@ pub fn test_write_stream_case5() {
     }
     assert_eq!(1450, w);
     assert_eq!(output[1449], 42);
+}
+
+
+#[test]
+pub fn test_write_stream_case6() {
+    let mut input:  [u8; 2048] = [0; 2048];
+    let mut output: [u8; 2048] = [0; 2048];
+
+    input[199] = 42;
+    input[200] = 84;
+
+    let w;
+    {
+        let mut reader = ReadBuffer::new(&input);
+        let mut writer = WriteBuffer::new(&mut output);
+        w = write_stream(&mut reader, &mut writer, 200, "foobar".to_string(), true).unwrap();
+    }
+    assert_eq!(200, w);
+    assert_eq!(output[199], 42);
+    assert_eq!(output[200], 0)
 }

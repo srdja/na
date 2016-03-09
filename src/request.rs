@@ -7,6 +7,7 @@ use std::fs::File;
 use std::str;
 
 use mime::Attr;
+use mime::Mime;
 use hyper::header::{ContentDisposition, DispositionType, ContentType,
                     DispositionParam, Charset, ContentLength, Location};
 
@@ -110,8 +111,6 @@ impl RequestHandler {
         Ok(name)
     }
 
-    // FIXME: stream reading buffer should be the same as the body reader
-
     /// Parses the form part of the stream and returns the name of the file.
     ///
     /// reads the stream until it finds the filename
@@ -175,26 +174,34 @@ impl RequestHandler {
             return Err("Invalid request uri".to_string());
         }
 
-        // advance to filename with no write stream
-        // stream::advance_stream(input, no_stream, 5000, "filename="")
+//        let cl = req.headers.get::<ContentLength>().unwrap();
+//        let len = cl.deref();
 
-        // read filename
-        // stream::write_stream(input, someting, 3000, "\"")
-
-        // advance to file start
-        // stream::advance_stream(input, no_stream, "\r\n\r\n")
-
-        // stream::write_stream(req, file, file_length, boundary);
-
-
-        //   let boundary  = req.headers.get::<ContendBoundary>();
-
+        // FIXME checks
 
         let file_name = self.parse_post_form(&mut req).unwrap();
+        let ph;
+        {
+            let ct = req.headers.get::<ContentType>().unwrap();
+            ph = ct.to_string();
+        }
+        let sp = ph.split("boundary=").collect::<Vec<&str>>();
+        let mut boundary = String::new();
+        boundary.push_str("\r\n--");
+        boundary.push_str(sp[1]);
 
-        // Borrow scope
-        {let stat: &mut StatusCode = res.status_mut();
-         *stat = StatusCode::Found;}
+        let path = self.directory.full_path(file_name);
+        let pathcl = path.clone();
+        let w;
+        {
+            let mut file = File::create(path).unwrap();
+            w = stream::write_stream(&mut req, &mut file, 30000, boundary.to_string(), false).unwrap();
+        }
+        println!("Wrote {} bytes to {}", w, pathcl);
+        {
+            let stat: &mut StatusCode = res.status_mut();
+            *stat = StatusCode::Found;
+        }
 
         res.headers_mut().set(Location("/".to_string()));
         res.send(b"Something").unwrap();

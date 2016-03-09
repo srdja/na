@@ -28,6 +28,6 @@ impl Directory {
     }
 
     pub fn full_path(&self, name: String) -> String {
-        self.root.clone() + &name
+        self.root.clone() + "/" + &name
     }
 }
