@@ -197,7 +197,7 @@ impl RequestHandler {
         let w;
         {
             let mut file = File::create(path).unwrap();
-            w = stream::write_stream(&mut req, &mut file, 4000000000, boundary.to_string(), false).unwrap();
+            w = stream::write_stream(&mut req, &mut file, 4000000000, boundary.to_string()).unwrap();
         }
         println!("Wrote {} bytes to {}", w, pathcl);
         {
