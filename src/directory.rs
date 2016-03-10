@@ -38,12 +38,9 @@ impl Directory {
     /// Returns the full path of a file with the name "name". The file
     /// need not be an already existing file.
     pub fn full_path(&self, name: String) -> PathBuf {
-        println!("name is {}", name);
         let mut path = PathBuf::new();
         path.push(self.root.to_str().unwrap());
-//        path.push(path::MAIN_SEPARATOR.to_string());
         path.push(name);
-        println!("{}", path.to_str().unwrap());
         path
     }
 }
