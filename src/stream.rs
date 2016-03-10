@@ -10,7 +10,6 @@ use std::io;
 
 
 struct Buffer {
-    /// Buffer storage
     buff:         [u8; 1024],
     /// Number of bytes written to the buffer
     used:         usize,
@@ -44,82 +43,6 @@ impl Clone for Buffer {
     }
 }
 
-
-pub struct WriteBuffer<'a> {
-    buffer: &'a mut [u8],
-    written: usize,
-}
-
-
-impl<'a> WriteBuffer<'a> {
-    pub fn new(b: &'a mut [u8]) -> WriteBuffer<'a> {
-        WriteBuffer {
-            buffer: b,
-            written: 0
-        }
-    }
-}
-
-
-impl<'a> Write for WriteBuffer<'a> {
-    fn write(&mut self, buff: &[u8]) -> io::Result<usize> {
-        let w = self.written;
-        let l = self.buffer.len();
-
-        let mut written = 0;
-        for (to, from) in self.buffer[w..l].iter_mut().zip(buff.iter()) {
-            written += 1;
-            *to = *from
-        }
-        self.written += written;
-        Ok(written)
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
-}
-
-
-#[allow(dead_code)]
-pub struct ReadBuffer<'a> {
-    buffer: &'a[u8],
-    read:   usize,
-}
-
-
-#[allow(dead_code)]
-impl<'a> ReadBuffer<'a> {
-    pub fn new(b: &'a [u8]) -> ReadBuffer<'a> {
-        ReadBuffer {
-            buffer: b,
-            read:   0,
-        }
-    }
-}
-
-
-impl<'a> Read for ReadBuffer<'a> {
-    fn read(&mut self, buff: &mut [u8]) -> io::Result<usize> {
-        let max_len = buff.len();
-        let available_bytes = self.buffer.len() - self.read;
-
-        let mut read = 0;
-        let b = self.read;
-        let e;
-        if available_bytes > buff.len() {
-            e = self.read + buff.len();
-        } else {
-            e = self.read + available_bytes;
-        }
-        for (from, to) in self.buffer[b..e].iter().zip(buff.iter_mut()) {
-            read += 1;
-            *to = *from
-        }
-        self.read += read;
-        Ok(read)
-    }
-}
 
 
 /// Reads and advances the input stream until one of the conditions is met:
@@ -241,6 +164,88 @@ pub fn write_stream(input:     &mut Read,
         }
     }
     Ok(write_total)
+}
+
+
+// Tests
+
+
+#[allow(dead_code)]
+pub struct WriteBuffer<'a> {
+    buffer: &'a mut [u8],
+    written: usize,
+}
+
+
+#[allow(dead_code)]
+impl<'a> WriteBuffer<'a> {
+    pub fn new(b: &'a mut [u8]) -> WriteBuffer<'a> {
+        WriteBuffer {
+            buffer: b,
+            written: 0
+        }
+    }
+}
+
+
+#[allow(dead_code)]
+impl<'a> Write for WriteBuffer<'a> {
+    fn write(&mut self, buff: &[u8]) -> io::Result<usize> {
+        let w = self.written;
+        let l = self.buffer.len();
+
+        let mut written = 0;
+        for (to, from) in self.buffer[w..l].iter_mut().zip(buff.iter()) {
+            written += 1;
+            *to = *from
+        }
+        self.written += written;
+        Ok(written)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+
+#[allow(dead_code)]
+pub struct ReadBuffer<'a> {
+    buffer: &'a[u8],
+    read:   usize,
+}
+
+
+#[allow(dead_code)]
+impl<'a> ReadBuffer<'a> {
+    pub fn new(b: &'a [u8]) -> ReadBuffer<'a> {
+        ReadBuffer {
+            buffer: b,
+            read:   0,
+        }
+    }
+}
+
+
+impl<'a> Read for ReadBuffer<'a> {
+    fn read(&mut self, buff: &mut [u8]) -> io::Result<usize> {
+        let available_bytes = self.buffer.len() - self.read;
+
+        let mut read = 0;
+        let b = self.read;
+        let e;
+        if available_bytes > buff.len() {
+            e = self.read + buff.len();
+        } else {
+            e = self.read + available_bytes;
+        }
+        for (from, to) in self.buffer[b..e].iter().zip(buff.iter_mut()) {
+            read += 1;
+            *to = *from
+        }
+        self.read += read;
+        Ok(read)
+    }
 }
 
 

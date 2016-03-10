@@ -6,8 +6,6 @@ use std::io::Read;
 use std::fs::File;
 use std::str;
 
-use mime::Attr;
-use mime::Mime;
 use hyper::header::{ContentDisposition, DispositionType, ContentType,
                     DispositionParam, Charset, ContentLength, Location};
 
@@ -20,9 +18,6 @@ use ui;
 use stream;
 
 
-///
-///
-///
 pub struct RequestHandler {
     verbose:   bool,
     directory: Directory,
@@ -85,7 +80,7 @@ impl RequestHandler {
                 read_total = read_total + read;
                 sent_total = sent_total + sent;
             }
-            stream.end();
+            stream.end().unwrap();
 
             if sent_total != read_total {
                 println!("");
@@ -165,7 +160,7 @@ impl RequestHandler {
     }
 
     /// Return status code
-    fn handle_post(&self, mut req: Request, mut res: Response) -> Result<usize, String> {
+    fn handle_post(&self, mut req: Request, mut res: Response) -> Result<String, String> {
         let uri  = req.uri.to_string();
         let addr = req.remote_addr.to_string();
 
@@ -210,7 +205,7 @@ impl RequestHandler {
         res.send(b"Something").unwrap();
         println!("Sending status code {}", StatusCode::Found.to_string());
 
-        Ok(0)
+        Ok("".to_string())
     }
 
 
@@ -218,7 +213,7 @@ impl RequestHandler {
         match req.method {
             Post => {
                 match self.handle_post(req, res) {
-                    Ok (n)   => return,
+                    Ok (n)   => print!("{}",n),
                     Err(err) => println!("Error: {:?}", err)
                 }
             },
