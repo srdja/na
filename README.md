@@ -1,7 +1,7 @@
 # na
 
 
-Share files with people next to you without sending to send them under the ocean or into space and back again.
+Share files with people next to you without having to send them under the ocean or into space and back again.
 
 
 ### Usage
