@@ -1,33 +1,49 @@
 
 use std::fs;
+use std::path::{self, PathBuf};
+use std::collections::HashMap;
+
 
 pub struct Directory {
-    root: String,
+    root: PathBuf,
 }
 
 
 impl Directory {
 
-    pub fn new(root: String) -> Directory {
+    pub fn new(root: PathBuf) -> Directory {
         Directory {
             root: root,
         }
     }
 
-    pub fn list_available_resources(&self) -> Vec<String> {
-        let mut files: Vec<String> = Vec::new();
-        let paths = fs::read_dir(&*(self.root)).unwrap();
+    /// Get a table of uri => filename from the root directory. Files are
+    /// not listed recursively, only the base level files are listed.
+    ///  Directories are ommited as well.
+    pub fn list_available_resources(&self) -> HashMap<String, String> {
+        let mut files: HashMap<String, String> = HashMap::new();
+        let paths = fs::read_dir(&(self.root)).unwrap();
 
         for p in paths {
             let pu = p.unwrap();
             if pu.file_type().unwrap().is_file() {
-                files.push(format!("/{}", pu.file_name().into_string().unwrap()));
+                files.insert(
+                    format!("/{}", pu.file_name().into_string().unwrap()),
+                    format!("{}",  pu.file_name().into_string().unwrap()));
             }
         }
         files
     }
 
-    pub fn full_path(&self, name: String) -> String {
-        self.root.clone() + "/" + &name
+    /// Returns the full path of a file with the name "name". The file
+    /// need not be an already existing file.
+    pub fn full_path(&self, name: String) -> PathBuf {
+        println!("name is {}", name);
+        let mut path = PathBuf::new();
+        path.push(self.root.to_str().unwrap());
+//        path.push(path::MAIN_SEPARATOR.to_string());
+        path.push(name);
+        println!("{}", path.to_str().unwrap());
+        path
     }
 }

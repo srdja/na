@@ -1,5 +1,8 @@
 
-pub fn render_ui(res: &Vec<String>) -> String {
+use std::collections::HashMap;
+
+
+pub fn render_ui(res: &HashMap<String, String>) -> String {
     let upload =
 "<!DOCTYPE html>
 <html>
@@ -18,9 +21,9 @@ pub fn render_ui(res: &Vec<String>) -> String {
 
     let mut files = String::new();
 
-    for r in res {
+    for (uri, name) in res {
         files = files +
-            &(format!("  <a href=\"{}\" target=\"_blank\">{}</a></br>\n", r, r));
+            &(format!("  <a href=\"{}\" target=\"_blank\">{}</a></br>\n", uri, name));
     }
     let page = upload + &files + "</body>\n</html>";
     page

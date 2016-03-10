@@ -19,6 +19,7 @@ use directory::Directory;
 use ui;
 use stream;
 
+
 ///
 ///
 ///
@@ -49,7 +50,6 @@ impl RequestHandler {
                      req.remote_addr.to_string(),
                      uri);
         }
-
         if uri == "/" {
             res.send(ui::render_ui(&resources).as_bytes()).unwrap();
             return;
@@ -58,8 +58,9 @@ impl RequestHandler {
         let mut name: Vec<u8> = Vec::new();
         name.extend_from_slice(uri[1..uri.len()].as_bytes());
 
-        if resources.contains(&uri) {
-            let path = self.directory.full_path(uri);
+        if resources.contains_key(&uri) {
+            let r_name = resources.get(&uri).unwrap().clone(); // this should replace the if block
+            let path = self.directory.full_path(r_name);
             let meta = fs::metadata(&*path).unwrap();
             let mut file: File = File::open(&*path).unwrap();
             let len = meta.len() as usize;
@@ -199,7 +200,7 @@ impl RequestHandler {
             let mut file = File::create(path).unwrap();
             w = stream::write_stream(&mut req, &mut file, 4000000000, boundary.to_string()).unwrap();
         }
-        println!("Wrote {} bytes to {}", w, pathcl);
+        println!("Wrote {} bytes to {}", w, pathcl.to_str().unwrap());
         {
             let stat: &mut StatusCode = res.status_mut();
             *stat = StatusCode::Found;
@@ -230,7 +231,7 @@ impl RequestHandler {
 }
 
 
-impl Handler for RequestHandler {
+impl Handler for RequestHandler  {
     fn handle (&self, req: Request, res: Response) {
         self.handle_requests(req, res);
     }
