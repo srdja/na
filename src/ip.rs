@@ -2,12 +2,11 @@
 use std::mem;
 use std::net::Ipv4Addr;
 use libc::c_int;
-use libc::size_t;
 
-
-extern {
-    fn get_local_addr(addr: *const i32, max_addrs: size_t) -> c_int;
-}
+use libc::getifaddrs;
+use libc::ifaddrs;
+use libc::sockaddr_in;
+use libc::AF_INET;
 
 
 /// Note: Taken from the unstable stdlib release
@@ -29,6 +28,7 @@ pub fn is_private(ip: Ipv4Addr) -> bool {
     }
 }
 
+
 /// Converts an integer representation of ipv4 address to Ipv4Addr
 pub fn to_ipaddr(addr: c_int) -> Ipv4Addr {
     Ipv4Addr::new( addr        as u8,
@@ -40,20 +40,23 @@ pub fn to_ipaddr(addr: c_int) -> Ipv4Addr {
 
 pub fn get_local_addresses() -> Option<Vec<String>> {
     let mut addresses: Vec<String> = Vec::new();
-    let buff: [c_int; 5];
-    let addrs;
 
     unsafe {
-        buff  = mem::zeroed();
-        addrs = get_local_addr(mem::transmute(&(buff[0])), 5);
-    }
-    if addrs == 0 {
-        return None;
-    }
-    for a in 0..addrs {
-        let addr = to_ipaddr(buff[a as usize]);
-        if is_private(addr) {
-            addresses.push(to_ipaddr(buff[a as usize]).to_string());
+        let mut next: *mut ifaddrs = mem::zeroed();
+        let status = getifaddrs(&mut next);
+
+        if status == -1 {
+            return None;
+        }
+        while !next.is_null() {
+            let address: *mut sockaddr_in = mem::transmute((*next).ifa_addr);
+            if (*address).sin_family == (AF_INET as u16) {
+                let addr = to_ipaddr((*address).sin_addr.s_addr as c_int);
+                if is_private(addr) {
+                    addresses.push(addr.to_string());
+                }
+            }
+            next = (*next).ifa_next;
         }
     }
     Some(addresses)
