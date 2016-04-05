@@ -7,6 +7,7 @@ pub fn render_ui(res: &HashMap<String, String>) -> String {
 "<!DOCTYPE html>
 <html>
 <head>
+  <meta charset=\"utf-8\">
   <title>Sharing is caring</title>
 </head>
 <body>

@@ -3,6 +3,7 @@ extern crate getopts;
 extern crate hyper;
 extern crate mime;
 extern crate regex;
+extern crate url;
 
 mod ip;
 mod directory;

@@ -5,6 +5,8 @@ use std::io::Write;
 use std::io::Read;
 use std::fs::File;
 use std::str;
+use url::{Url, ParseError};
+use url::percent_encoding::percent_decode;
 
 use hyper::header::{ContentDisposition, DispositionType, ContentType,
                     DispositionParam, Charset, ContentLength, Location};
@@ -12,10 +14,12 @@ use hyper::header::{ContentDisposition, DispositionType, ContentType,
 use hyper::server::{Handler, Request, Response};
 use hyper::status::StatusCode;
 use hyper::{Get, Post};
+use hyper::uri::RequestUri;
 
 use directory::Directory;
 use ui;
 use stream;
+
 
 
 pub struct RequestHandler {
@@ -38,7 +42,15 @@ impl RequestHandler {
     fn handle_get(&self, req: Request, mut res: Response) {
         let resources = self.directory.list_available_resources();
         let uri_raw = req.uri.to_string();
-        let uri = uri_raw.replace("%20", " ");
+
+        let uri: String = match req.uri {
+            RequestUri::AbsolutePath(path) => {
+                let dec_bytes = percent_decode((&path).as_bytes());
+                str::from_utf8(&dec_bytes).unwrap().to_string()
+            },
+            RequestUri::AbsoluteUri(uri)   => uri.to_string(),
+            _ => "fixme".to_string()
+        };
 
         if self.verbose {
             println!("Receiving a GET request from {} for {}",
@@ -65,7 +77,7 @@ impl RequestHandler {
             res.headers_mut().set(ContentDisposition {
                 disposition: DispositionType::Attachment,
                 parameters: vec![DispositionParam::Filename(
-                    Charset::Iso_8859_1,
+                    Charset::Ext("UTF-8".to_string()),
                     None,
                     name)]});
 

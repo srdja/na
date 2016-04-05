@@ -14,5 +14,8 @@ regex = "*"
 version = "*"
 default-features = false
 
+[dependencies.url]
+git = "https://github.com/servo/rust-url"
+
 [build-dependencies]
 gcc = "*"
