@@ -58,7 +58,7 @@ directory is served by default if none is pecified.", "PATH");
         None    => "9000".to_string()
     };
 
-    let address       = ip::get_local_addresses().unwrap();
+    let address       = ip::get_local_addresses();
     let addr_and_port = format!("{}:{}", address[0], port);
 
     println!("Serving contents of {} at {}", current_dir.to_str().unwrap(), addr_and_port);
