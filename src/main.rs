@@ -4,17 +4,20 @@ extern crate hyper;
 extern crate mime;
 extern crate regex;
 extern crate url;
+extern crate mustache;
 
 mod ip;
 mod directory;
 mod request;
-mod ui;
+mod template;
 mod stream;
+mod static_r;
 
 use getopts::Options;
 use hyper::server::{Handler, Server};
 use directory::Directory;
 use request::RequestHandler;
+use static_r::Resource;
 
 use std::path::PathBuf;
 use std::env;
@@ -60,7 +63,9 @@ directory is served by default if none is pecified.", "PATH");
     println!("Serving contents of {} at {}", current_dir.to_str().unwrap(), addr_and_port);
 
     let directory     = Directory::new(current_dir);
-    let req_handler   = RequestHandler::new(directory, true);
+    let static_res    = Resource::new();
+    let req_handler   = RequestHandler::new(directory, static_res, true);
+
 
     Server::http(&*addr_and_port).unwrap()
             .handle(req_handler).unwrap();

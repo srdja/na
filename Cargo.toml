@@ -9,6 +9,7 @@ libc = "*"
 mime = "0.1.3"
 getopts = "*"
 regex = "*"
+mustache = "*"
 
 [dependencies.hyper]
 version = "*"

@@ -1,5 +1,3 @@
-/// Passed to server as handler
-
 use std::fs;
 use std::io::Write;
 use std::io::Read;
@@ -17,24 +15,26 @@ use hyper::{Get, Post};
 use hyper::uri::RequestUri;
 
 use directory::Directory;
-use ui;
+use template;
 use stream;
-
+use static_r::Resource;
 
 
 pub struct RequestHandler {
     verbose:   bool,
     directory: Directory,
+    resources: Resource,
 }
 
 
 impl RequestHandler {
 
 
-    pub fn new(dir: Directory, verbose: bool) -> RequestHandler {
+    pub fn new(dir: Directory, res: Resource, verbose: bool) -> RequestHandler {
         RequestHandler {
             verbose:   verbose,
             directory: dir,
+            resources: res,
         }
     }
 
@@ -57,8 +57,14 @@ impl RequestHandler {
                      req.remote_addr.to_string(),
                      uri);
         }
-        if uri == "/" {
-            res.send(ui::render_ui(&resources).as_bytes()).unwrap();
+        if uri == "/" || uri == "/index.html" {
+            let rendered = template::render(self.resources.r.get("/resource/index.html")
+                                            .unwrap().to_string(), &resources);
+            res.send(rendered.as_bytes()).unwrap();
+            return;
+        }
+        if self.resources.r.contains_key(uri.as_str()) {
+            res.send(self.resources.r.get(uri.as_str()).unwrap().as_bytes()).unwrap();
             return;
         }
 
