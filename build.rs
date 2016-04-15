@@ -52,7 +52,7 @@ impl Resource {
         let mut buff = String::new();
         file.read_to_string(&mut buff).unwrap();
 
-        let f_body = buff /*.replace("\n", " ")*/.replace("\"", "\\\"");
+        let f_body = buff.replace("\"", "\\\"");
         let f_name = path.file_name().into_string().unwrap();
 
         body.push_str(&format!("        res.insert(\"/resource/{}\", \"{}\");\n",
