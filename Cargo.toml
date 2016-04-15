@@ -10,6 +10,7 @@ mime = "0.1.3"
 getopts = "*"
 regex = "*"
 mustache = "*"
+get_if_addrs = "0.4.0"
 
 [dependencies.hyper]
 version = "*"

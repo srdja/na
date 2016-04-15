@@ -5,6 +5,7 @@ extern crate mime;
 extern crate regex;
 extern crate url;
 extern crate mustache;
+extern crate get_if_addrs;
 
 mod ip;
 mod directory;
