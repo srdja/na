@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 
 pub struct Directory {
-    root: PathBuf,
+    pub root: PathBuf,
 }
 
 

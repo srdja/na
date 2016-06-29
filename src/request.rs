@@ -3,12 +3,14 @@ use std::io::Write;
 use std::io::Read;
 use std::fs::File;
 use std::str;
-use url::{Url, ParseError};
 use url::percent_encoding::percent_decode;
 
-use hyper::header::{ContentDisposition, DispositionType, ContentType,
-                    DispositionParam, Charset, ContentLength, Location};
-
+use hyper::header::ContentDisposition;
+use hyper::header::DispositionType;
+use hyper::header::DispositionParam;
+use hyper::header::Charset;
+use hyper::header::ContentLength;
+use hyper::header::Location;
 use hyper::server::{Handler, Request, Response};
 use hyper::status::StatusCode;
 use hyper::{Get, Post};
@@ -16,8 +18,9 @@ use hyper::uri::RequestUri;
 
 use directory::Directory;
 use template;
-use stream;
 use static_r::Resource;
+
+use multipart::server::{Multipart, MultipartData};
 
 
 pub struct RequestHandler {
@@ -28,7 +31,6 @@ pub struct RequestHandler {
 
 
 impl RequestHandler {
-
 
     pub fn new(dir: Directory, res: Resource, verbose: bool) -> RequestHandler {
         RequestHandler {
@@ -41,7 +43,6 @@ impl RequestHandler {
 
     fn handle_get(&self, req: Request, mut res: Response) {
         let resources = self.directory.list_available_resources();
-        let uri_raw = req.uri.to_string();
 
         let uri: String = match req.uri {
             RequestUri::AbsolutePath(path) => {
@@ -88,7 +89,7 @@ impl RequestHandler {
                     name)]});
 
             let mut stream = res.start().unwrap();
-            let mut buffer: [u8; 1024] = [0; 1024];
+            let mut buffer: [u8; 4096] = [0; 4096];
             let mut read_total: usize = 0;
             let mut sent_total: usize = 0;
 
@@ -106,139 +107,47 @@ impl RequestHandler {
         }
     }
 
+    fn handle_post(&self, req: Request, mut res: Response) {
+        let remote_address = req.remote_addr.to_string();
+        println!("Receiving a POST request from {}", remote_address);
 
-    fn get_filename_from_form(&self, form: &str) -> Result<String, String> {
-        let file_name = "filename=";
-        let mut name  = "".to_string();
+        let multipart =  Multipart::from_request(req).ok();
+        if multipart.is_none() {
+            println!("Err: Multipart missing!");
+            return;
+        }
+        let mut mpu = multipart.unwrap();
+        let multipart_field = mpu.read_entry();
 
-        for s in form.split(";") {
-            if s.contains(file_name) {
-                let tmp: Vec<&str> = s.split("\"").collect();
-                if tmp.len() != 3 && tmp[0] != file_name {
-                    return Err("Error: Malformed form".to_string());
+        if multipart_field.is_err() {
+            println!("Err: Multipart field missing");
+            return;
+        }
+        let mp_data = multipart_field.unwrap();
+        if mp_data.is_none() {
+            println!("Err: Multipart data missing");
+            return;
+        }
+        match mp_data.unwrap().data {
+            MultipartData::File(mut file) => {
+                let name = file.filename().unwrap().to_string();
+                let path = self.directory.full_path(name);
+                match file.save_as(path) {
+                    Ok(f) => {
+                        let p = f.path.to_str().unwrap();
+                        println!("Written {} bytes to {}", f.size, p);
+                        {
+                            let stat: &mut StatusCode = res.status_mut();
+                            *stat = StatusCode::Found;
+                        }
+                        res.headers_mut().set(Location("/".to_string()));
+                        res.send(b"").unwrap();
+                        println!("Sending status code {}", StatusCode::Found.to_string());
+                    },
+                    Err(e) => {}
                 }
-                name = tmp[1].to_string();
             }
-        }
-        if name == "" {
-            return Err("Error: File name not found".to_string());
-        }
-        Ok(name)
-    }
-
-    /// Parses the form part of the stream and returns the name of the file.
-    ///
-    /// reads the stream until it finds the filename
-    fn parse_post_form(&self, req: &mut Request) -> Result<String, String> {
-        const MAX_LEN: usize = 512;
-
-        let mut tmp_buff: [u8; 1] = [0; 1];
-        let mut buff: [u8; MAX_LEN] = [0; MAX_LEN];
-        let mut read_total: usize = 0;
-        let mut end_reached = false;
-
-        // Read the form part of the stream
-        while !end_reached {
-            if read_total >= MAX_LEN {
-                return Err(format!("Error: Post form is too long > {}", MAX_LEN));
-            }
-            let read = req.read(&mut tmp_buff).unwrap();
-            // Stream end is reached before the form end
-            if read < 1 {
-                return Err("Error: Malformed form".to_string());
-            }
-            // Check if two consecutive new lines have been read
-            if read_total > 4 &&
-                tmp_buff[0]          == ('\n' as u8) &&
-                buff[read_total - 1] == ('\r' as u8) &&
-                buff[read_total - 2] == ('\n' as u8) &&
-                buff[read_total - 3] == ('\r' as u8 )
-            {
-                end_reached = true;
-            }
-            buff[read_total] = tmp_buff[0].clone();
-            read_total = read_total + read;
-        }
-
-        // Stringify the form buffer
-        let form_raw = str::from_utf8(&buff[0..read_total]);
-        let form;
-
-        match form_raw {
-            Err(e) => return Err(e.to_string()),
-            Ok (f) => {
-                if f.len() < 50 { // totaly arbitrary
-                    return Err("Error: Malformed form".to_string())
-                }
-                form = f
-            }
-        }
-
-        self.get_filename_from_form(form)
-    }
-
-    /// Return status code
-    fn handle_post(&self, mut req: Request, mut res: Response) -> Result<String, String> {
-        let uri  = req.uri.to_string();
-        let addr = req.remote_addr.to_string();
-
-        if self.verbose {
-            println!("Receiving a POST request from {}", addr);
-        }
-        if uri != "/" {
-            return Err("Invalid request uri".to_string());
-        }
-
-//        let cl = req.headers.get::<ContentLength>().unwrap();
-//        let len = cl.deref();
-
-        // FIXME checks
-
-        let file_name = self.parse_post_form(&mut req).unwrap();
-        println!("{}",file_name);
-        let ph;
-        {
-            let ct = req.headers.get::<ContentType>().unwrap();
-            ph = ct.to_string();
-        }
-        let sp = ph.split("boundary=").collect::<Vec<&str>>();
-        let mut boundary = String::new();
-        boundary.push_str("\r\n--");
-        boundary.push_str(sp[1]);
-
-        let path = self.directory.full_path(file_name);
-        let pathcl = path.clone();
-        let w;
-        {
-            let mut file = File::create(path).unwrap();
-            w = stream::write_stream(&mut req, &mut file, 4000000000, boundary.to_string()).unwrap();
-        }
-        println!("Wrote {} bytes to {}", w, pathcl.to_str().unwrap());
-        {
-            let stat: &mut StatusCode = res.status_mut();
-            *stat = StatusCode::Found;
-        }
-
-        res.headers_mut().set(Location("/".to_string()));
-        res.send(b"Something").unwrap();
-        println!("Sending status code {}", StatusCode::Found.to_string());
-
-        Ok("".to_string())
-    }
-
-
-    fn handle_requests(&self, req: Request, res: Response) {
-        match req.method {
-            Post => {
-                match self.handle_post(req, res) {
-                    Ok (n)   => print!("{}",n),
-                    Err(err) => println!("Error: {:?}", err)
-                }
-            },
-            Get => {
-                self.handle_get(req, res);
-            },
-            _ => return
+            MultipartData::Text(t) => {},
         }
     }
 }
@@ -246,6 +155,14 @@ impl RequestHandler {
 
 impl Handler for RequestHandler  {
     fn handle (&self, req: Request, res: Response) {
-        self.handle_requests(req, res);
+        match req.method {
+            Post => {
+                self.handle_post(req, res);
+            },
+            Get => {
+                self.handle_get(req, res);
+            },
+            _ => return
+        }
     }
 }

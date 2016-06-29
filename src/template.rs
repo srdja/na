@@ -1,9 +1,6 @@
 use std::collections::HashMap;
-use std::io::prelude::*;
-use std::io::BufWriter;
-use std::io;
 use std::string::String;
-use mustache::{self, VecBuilder, MapBuilder, Template};
+use mustache::{self, VecBuilder, MapBuilder};
 
 
 pub fn render(template: String, res: &HashMap<String, String>) -> String {

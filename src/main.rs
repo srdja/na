@@ -1,4 +1,3 @@
-extern crate libc;
 extern crate getopts;
 extern crate hyper;
 extern crate mime;
@@ -6,12 +5,12 @@ extern crate regex;
 extern crate url;
 extern crate mustache;
 extern crate get_if_addrs;
+extern crate multipart;
 
 mod ip;
 mod directory;
 mod request;
 mod template;
-mod stream;
 mod static_r;
 
 use getopts::Options;
