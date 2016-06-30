@@ -22,16 +22,28 @@ function sortByName() {
     }
 }
 
-function sortByDate() {
-
-}
-
-
 function sortBySize() {
+    var table = document.getElementById("file-table");
+    var rows  = Array.prototype.slice.call(table.rows, 1);
 
+    if (sizeSorted) {
+        rows.reverse();
+    } else {
+        rows.sort(function (a, b) {
+            var size_a = parseInt(a.cells[2].getAttribute("data-size"));
+            var size_b = parseInt(b.cells[2].getAttribute("data-size"));
+            return size_a - size_b;
+        });
+        nameSorted = false;
+        dateSorted = false;
+        sizeSorted = true;
+    }
+    for (var i = 1; i < rows.length; i++) {
+        table.appendChild(rows[i]);
+    }
 }
-
 
 window.onload = function () {
     document.getElementById("hname").onclick = sortByName;
+    document.getElementById("hsize").onclick = sortBySize;
 }

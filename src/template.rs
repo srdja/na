@@ -40,6 +40,7 @@ pub fn render(template: String, res: &HashMap<String, FileMeta>) -> String {
                     .insert_str("url".to_string(), uri)
                     .insert_str("name".to_string(), name.name.clone())
                     .insert_str("size".to_string(), format_size(name.size))
+                    .insert_str("size-bytes".to_string(), format!("{}", name.size))
             });
         }
         data
