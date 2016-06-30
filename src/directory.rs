@@ -2,10 +2,17 @@
 use std::fs;
 use std::path::PathBuf;
 use std::collections::HashMap;
-
+use std::time::SystemTime;
 
 pub struct Directory {
     pub root: PathBuf,
+}
+
+
+pub struct FileMeta {
+    pub name: String,
+    pub size: u64,
+//    pub modified: SystemTime
 }
 
 
@@ -20,8 +27,8 @@ impl Directory {
     /// Get a table of uri => filename from the root directory. Files are
     /// not listed recursively, only the base level files are listed.
     ///  Directories are ommited as well.
-    pub fn list_available_resources(&self) -> HashMap<String, String> {
-        let mut files: HashMap<String, String> = HashMap::new();
+    pub fn list_available_resources(&self) -> HashMap<String, FileMeta> {
+        let mut files: HashMap<String, FileMeta> = HashMap::new();
         let paths = fs::read_dir(&(self.root)).unwrap();
 
         for p in paths {
@@ -29,7 +36,11 @@ impl Directory {
             if pu.file_type().unwrap().is_file() {
                 files.insert(
                     format!("/{}", pu.file_name().into_string().unwrap()),
-                    format!("{}",  pu.file_name().into_string().unwrap()));
+                    FileMeta {
+                        name: format!("{}",  pu.file_name().into_string().unwrap()),
+                        size: pu.metadata().unwrap().len(),
+                   //     modified: pu.metadata().unwrap().modified().unwrap()
+                    });
             }
         }
         files

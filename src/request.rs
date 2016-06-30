@@ -74,7 +74,7 @@ impl RequestHandler {
 
         if resources.contains_key(&uri) {
             let r_name = resources.get(&uri).unwrap().clone(); // this should replace the if block
-            let path = self.directory.full_path(r_name);
+            let path = self.directory.full_path(r_name.name.clone());
             let meta = fs::metadata(&*path).unwrap();
             let mut file: File = File::open(&*path).unwrap();
             let len = meta.len() as usize;
@@ -141,7 +141,7 @@ impl RequestHandler {
                             *stat = StatusCode::Found;
                         }
                         res.headers_mut().set(Location("/".to_string()));
-                        res.send(b"").unwrap();
+                        res.send(b"a").unwrap();
                         println!("Sending status code {}", StatusCode::Found.to_string());
                     },
                     Err(e) => {}
