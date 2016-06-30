@@ -2,8 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Sharing is caring</title>
-    <script type="text/javascript" src="resource/test.js"></script>
+    <title>Na - local file share</title>
+    <link rel="stylesheet" type="text/css" href="resource/style.css">
+    <script type="text/javascript" src="resource/script.js"></script>
   </head>
   <body>
     <form action="/" method="post" enctype="multipart/form-data">
@@ -11,9 +12,24 @@
       <input type="submit" value="upload">
     </form>
     <hr>
-    Files:</br></br>
-    {{#files}}
-    <a href="{{url}}" target="_blank">{{name}}</a></br>
-    {{/files}}
+    <div id="files">
+      Files:</br></br>
+      <table id="file-table">
+        <tr id="table-header">
+          <th id="hname">Name</th>
+          <th id="hmodified">Modified</th>
+          <th id="hsize">Size</th>
+        </tr>
+        {{#files}}
+        <tr class="table-data">
+          <td>
+            <a href="{{url}}" target="_blank">{{name}}</a></br>
+          </td>
+          <td>1/1/1991 15:32:33</td>
+          <td>128</td>
+        </tr>
+        {{/files}}
+      </table>
+    </div>
   </body>
 </html>
