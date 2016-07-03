@@ -3,6 +3,7 @@ use std::io::Write;
 use std::io::Read;
 use std::fs::File;
 use std::str;
+use std::ops::Deref;
 use url::percent_encoding::percent_decode;
 
 use hyper::header::ContentDisposition;
@@ -46,8 +47,7 @@ impl RequestHandler {
 
         let uri: String = match req.uri {
             RequestUri::AbsolutePath(path) => {
-                let dec_bytes = percent_decode((&path).as_bytes());
-                str::from_utf8(&dec_bytes).unwrap().to_string()
+                percent_decode((&path).as_bytes()).decode_utf8().unwrap().deref().to_string()
             },
             RequestUri::AbsoluteUri(uri)   => uri.to_string(),
             _ => "fixme".to_string()
@@ -111,7 +111,7 @@ impl RequestHandler {
         let remote_address = req.remote_addr.to_string();
         println!("Receiving a POST request from {}", remote_address);
 
-        let multipart =  Multipart::from_request(req).ok();
+        let multipart = Multipart::from_request(req).ok();
         if multipart.is_none() {
             println!("Err: Multipart missing!");
             return;
