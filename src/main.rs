@@ -94,7 +94,7 @@ directory is served by default if none is pecified.", "PATH");
         },
     };
 
-    println!("Serving contents of {} at {}", current_dir.to_str().unwrap(), addr_and_port);
+    println!("Serving contents of {} at http://{}", current_dir.to_str().unwrap(), addr_and_port);
 
     let directory     = Directory::new(current_dir);
     let static_res    = Resource::new();
