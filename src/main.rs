@@ -32,11 +32,20 @@ fn main() {
     opts.optopt("d", "dir", "Path of the served directory. Working
 directory is served by default if none is pecified.", "PATH");
     opts.optopt("p", "port", "Port number", "NUMBER");
+    opts.optopt("i", "interface", "Specify an interface to use", "INTERFACE");
+    opts.optflag("l", "list-interfaces", "Print a list of available interfaces");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m)  => m,
         Err(e) => panic!(e.to_string())
     };
+
+    if matches.opt_present("l") {
+        for i in ip::get_all_addrs() {
+            println!("{}", i);
+        }
+        return;
+    }
 
     if matches.opt_present("h") {
         print_help(&program_name, opts);
@@ -57,8 +66,33 @@ directory is served by default if none is pecified.", "PATH");
         None    => "9000".to_string()
     };
 
-    let address       = ip::get_local_addresses();
-    let addr_and_port = format!("{}:{}", address[0], port);
+    let address = match matches.opt_str("i") {
+        Some(a) => {
+            if ip::interface_exists(a.clone()) {
+                match ip::get_iface_addr(a) {
+                    Ok(i)  => Some(i),
+                    Err(e) => {
+                        println!("{}", e);
+                        None
+                    }
+                }
+            } else {
+                panic!("Error: Specified interface \"{}\" does not exist", a);
+            }
+        },
+        None => {
+            ip::get_local_addr()
+        }
+    };
+
+    let addr_and_port = match address {
+        Some(a) => {
+            format!("{}:{}", a, port)
+        },
+        None => {
+            panic!("Error: No active network interfaces found!");
+        },
+    };
 
     println!("Serving contents of {} at {}", current_dir.to_str().unwrap(), addr_and_port);
 
