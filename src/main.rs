@@ -34,6 +34,7 @@ directory is served by default if none is pecified.", "PATH");
     opts.optopt("p", "port", "Port number", "NUMBER");
     opts.optopt("i", "interface", "Specify an interface to use", "INTERFACE");
     opts.optflag("l", "list-interfaces", "Print a list of available interfaces");
+    opts.optflag("v", "verbose", "Verbose output");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m)  => m,
@@ -98,7 +99,7 @@ directory is served by default if none is pecified.", "PATH");
 
     let directory     = Directory::new(current_dir);
     let static_res    = Resource::new();
-    let req_handler   = RequestHandler::new(directory, static_res, true);
+    let req_handler   = RequestHandler::new(directory, static_res, matches.opt_present("v"));
 
 
     Server::http(&*addr_and_port).unwrap()
