@@ -1,6 +1,5 @@
 use std::net::IpAddr;
 use get_if_addrs;
-use get_if_addrs::Interface;
 use std::cmp::Ordering;
 
 
