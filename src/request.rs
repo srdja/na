@@ -72,11 +72,9 @@ impl RequestHandler {
             _ => "fixme".to_string()
         };
 
-        if self.verbose {
-            println!("Receiving a GET request from {} for {}",
-                     req.remote_addr.to_string(),
-                     uri);
-        }
+        println_cond!(self.verbose, "Receiving a GET request from {} for {}",
+                       req.remote_addr.to_string(), uri);
+
         if uri == "/" || uri == "/index.html" {
             let rendered = template::render(self.resources.r.get("/resource/index.html")
                                             .unwrap().to_string(), &resources);
@@ -128,7 +126,7 @@ impl RequestHandler {
 
     fn handle_post(&self, req: Request, mut res: Response) {
         let remote_address = req.remote_addr.to_string();
-        println!("Receiving a POST request from {}", remote_address);
+        println_cond!(self.verbose, "Receiving a POST request from {}", remote_address);
 
         let multipart = Multipart::from_request(req).ok();
         if multipart.is_none() {
@@ -154,14 +152,14 @@ impl RequestHandler {
                 match file.save_as(path) {
                     Ok(f) => {
                         let p = f.path.to_str().unwrap();
-                        println!("Written {} bytes to {}", f.size, p);
+                        println_cond!(self.verbose, "Written {} bytes to {}", f.size, p);
                         {
                             let stat: &mut StatusCode = res.status_mut();
                             *stat = StatusCode::Found;
                         }
                         res.headers_mut().set(Location("/".to_string()));
                         res.send(b"a").unwrap();
-                        println!("Sending status code {}", StatusCode::Found.to_string());
+                        println_cond!(self.verbose, "Sending status code {}", StatusCode::Found.to_string());
                     },
                     Err(e) => {}
                 }

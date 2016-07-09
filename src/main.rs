@@ -27,6 +27,13 @@ extern crate mustache;
 extern crate get_if_addrs;
 extern crate multipart;
 
+
+macro_rules! println_cond {
+    ($b:expr, $s:expr, $($p:expr),*) => (
+        if $b {println!($s, $($p,)*)})
+}
+
+
 mod ip;
 mod directory;
 mod request;
@@ -126,9 +133,9 @@ directory is served by default if none is pecified.", "PATH");
 
     println!("Serving contents of {} at http://{}", current_dir.to_str().unwrap(), addr_and_port);
 
-    let directory     = Directory::new(current_dir);
-    let static_res    = Resource::new();
-    let req_handler   = RequestHandler::new(directory, static_res, matches.opt_present("v"));
+    let directory   = Directory::new(current_dir);
+    let static_res  = Resource::new();
+    let req_handler = RequestHandler::new(directory, static_res, matches.opt_present("v"));
 
 
     Server::http(&*addr_and_port).unwrap()
@@ -137,7 +144,7 @@ directory is served by default if none is pecified.", "PATH");
 
 
 fn print_help(name: &str, opts: Options) {
-    let brief = format!("Usage: {} [options]", name);
+    let brief = format!("Usage: {} [OPTIONS]", name);
     println!("{}", opts.usage(&brief));
 }
 
