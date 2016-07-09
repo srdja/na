@@ -23,6 +23,9 @@ use std::path::PathBuf;
 use std::env;
 
 
+const VERSION: &'static str = "0.0.1";
+
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let program_name = args[0].clone();
@@ -35,11 +38,17 @@ directory is served by default if none is pecified.", "PATH");
     opts.optopt("i", "interface", "Specify an interface to use", "INTERFACE");
     opts.optflag("l", "list-interfaces", "Print a list of available interfaces");
     opts.optflag("v", "verbose", "Verbose output");
+    opts.optflag("", "version", "Print version info");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m)  => m,
         Err(e) => panic!(e.to_string())
     };
+
+    if matches.opt_present("version") {
+        print_version_info();
+        return;
+    }
 
     if matches.opt_present("l") {
         for i in ip::get_all_addrs() {
@@ -110,4 +119,13 @@ directory is served by default if none is pecified.", "PATH");
 fn print_help(name: &str, opts: Options) {
     let brief = format!("Usage: {} [options]", name);
     println!("{}", opts.usage(&brief));
+}
+
+
+fn print_version_info() {
+    println!("na {}
+Copyright (C) 2016 Srđan Panić <i@srdja.me>.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.", VERSION);
 }
