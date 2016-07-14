@@ -76,7 +76,7 @@ impl RequestHandler {
                        req.remote_addr.to_string(), uri);
 
         if uri == "/" || uri == "/index.html" {
-            let rendered = template::render(self.resources.r.get("/resource/index.html")
+            let rendered = template::render_html(self.resources.r.get("/resource/index.html")
                                             .unwrap().to_string(), &resources);
             res.send(rendered.as_bytes()).unwrap();
             return;

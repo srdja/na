@@ -51,7 +51,7 @@ fn format_size(bytes: u64) -> String {
 }
 
 
-pub fn render(template: String, res: &HashMap<String, FileMeta>) -> String {
+pub fn render_html(template: String, res: &HashMap<String, FileMeta>) -> String {
     let root = MapBuilder::new().insert_vec("files", |hash_build| {
         let mut data = VecBuilder::new();
         for (uri, name) in res {
