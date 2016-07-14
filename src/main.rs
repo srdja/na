@@ -70,7 +70,10 @@ directory is served by default if none is pecified.", "PATH");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m)  => m,
-        Err(e) => panic!(e.to_string())
+        Err(e) => {
+            println!("Error: {}", e);
+            return;
+        }
     };
 
     if matches.opt_present("version") {
@@ -115,7 +118,8 @@ directory is served by default if none is pecified.", "PATH");
                     }
                 }
             } else {
-                panic!("Error: Specified interface \"{}\" does not exist", a);
+                println!("Error: Specified interface \"{}\" does not exist!", a);
+                return;
             }
         },
         None => {
@@ -128,7 +132,8 @@ directory is served by default if none is pecified.", "PATH");
             format!("{}:{}", a, port)
         },
         None => {
-            panic!("Error: No active network interfaces found!");
+            println!("Error: No active network interfaces found!");
+            return;
         },
     };
 
