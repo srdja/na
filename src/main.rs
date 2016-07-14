@@ -132,15 +132,21 @@ directory is served by default if none is pecified.", "PATH");
         },
     };
 
-    println!("Serving contents of {} at http://{}", current_dir.to_str().unwrap(), addr_and_port);
-
+    let str_path    = current_dir.to_str().unwrap().clone().to_string();
     let directory   = Directory::new(current_dir);
     let static_res  = Resource::new();
     let req_handler = RequestHandler::new(directory, static_res, matches.opt_present("v"));
 
+    let srv = match Server::http(&*addr_and_port) {
+        Ok(s)  => s,
+        Err(e) => {
+            println!("Error: Unable to start na at ({}), {}", addr_and_port, e);
+            return;
+        }
+    };
+    println!("Serving contents of {} at http://{}", str_path, addr_and_port);
 
-    Server::http(&*addr_and_port).unwrap()
-            .handle(req_handler).unwrap();
+    srv.handle(req_handler).unwrap();
 }
 
 
