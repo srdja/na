@@ -24,6 +24,9 @@ use std::cmp::Ordering;
 
 
 pub fn interface_exists(iface: String) -> bool {
+    if iface == "localhost" {
+        return true;
+    }
     for i in get_if_addrs::get_if_addrs().unwrap() {
         if i.name == iface {
             return true;
@@ -34,6 +37,9 @@ pub fn interface_exists(iface: String) -> bool {
 
 
 pub fn get_iface_addr(iface: String) -> Result<String, String> {
+    if iface == "localhost" {
+        return Ok("127.0.0.1".to_string());
+    }
     let ifaces = get_if_addrs::get_if_addrs().unwrap();
     for i in ifaces {
         if i.name == iface {
