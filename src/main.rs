@@ -29,8 +29,20 @@ extern crate multipart;
 
 
 macro_rules! println_cond {
-    ($b:expr, $s:expr, $($p:expr),*) => (
-        if $b {println!($s, $($p,)*)})
+    ($b:expr, $($p:expr),+) => (
+        if $b {println!($($p,)+)})
+}
+
+
+macro_rules! printerr_cond {
+    ($b:expr, $($p:expr),+) => (
+        if $b {
+            use std::io::Write;
+            match writeln!(&mut ::std::io::stderr(), $($p,)+) {
+                Ok(_)  => {},
+                Err(e) => {panic!("Write to stderr failed: {}", e);}
+            };
+        })
 }
 
 
@@ -71,7 +83,7 @@ directory is served by default if none is pecified.", "PATH");
     let matches = match opts.parse(&args[1..]) {
         Ok(m)  => m,
         Err(e) => {
-            println!("Error: {}", e);
+            printerr_cond!(true, "Error: {}", e);
             return;
         }
     };
@@ -118,7 +130,7 @@ directory is served by default if none is pecified.", "PATH");
                     }
                 }
             } else {
-                println!("Error: Specified interface \"{}\" does not exist!", a);
+                printerr_cond!(true, "Error: Specified interface \"{}\" does not exist!", a);
                 return;
             }
         },
@@ -132,7 +144,7 @@ directory is served by default if none is pecified.", "PATH");
             format!("{}:{}", a, port)
         },
         None => {
-            println!("Error: No active network interfaces found!");
+            printerr_cond!(true, "Error: No active network interfaces found!");
             return;
         },
     };
@@ -145,7 +157,7 @@ directory is served by default if none is pecified.", "PATH");
     let srv = match Server::http(&*addr_and_port) {
         Ok(s)  => s,
         Err(e) => {
-            println!("Error: Unable to start na at ({}), {}", addr_and_port, e);
+            printerr_cond!(true, "Error: Unable to start na at ({}), {}", addr_and_port, e);
             return;
         }
     };
