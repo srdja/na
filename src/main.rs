@@ -62,6 +62,7 @@ fn main() {
     opts.optopt("d", "dir", "Path of the served directory. Working
 directory is served by default if none is pecified.", "PATH");
     opts.optopt("p", "port", "Port number", "NUMBER");
+    opts.optflag("o", "overwrite-file", "If set, uploaded files will overwrite existing files with the same name.");
     opts.optopt("i", "interface", "Specify an interface to use", "INTERFACE");
     opts.optflag("l", "list-interfaces", "Print a list of available interfaces");
     opts.optflag("v", "verbose", "Verbose output");

@@ -147,7 +147,7 @@ impl RequestHandler {
         }
         match mp_data.unwrap().data {
             MultipartData::File(mut file) => {
-                let name = file.filename().unwrap().to_string();
+                let name = self.directory.get_available_name(file.filename().unwrap().to_string());
                 let path = self.directory.full_path(name);
                 match file.save_as(path) {
                     Ok(f) => {

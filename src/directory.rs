@@ -72,4 +72,26 @@ impl Directory {
         path.push(name);
         path
     }
+
+
+    pub fn get_available_name(&self, name: String) -> String {
+        let files = self.list_available_resources();
+        let mut aname = name.clone();
+        let mut num   = 1;
+        while self.name_exists(&aname, &files) {
+            aname = format!("{} ({})", name, num);
+            num += 1;
+        }
+        return aname;
+    }
+
+
+    fn name_exists(&self, name: &String, files: &HashMap<String, FileMeta>) -> bool {
+        for v in files.values() {
+            if v.name == *name {
+                return true;
+            }
+        }
+        return false;
+    }
 }
