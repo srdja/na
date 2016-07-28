@@ -47,7 +47,7 @@ pub fn get_iface_addr(iface: String) -> Result<String, String> {
                 IpAddr::V4(addr) => {
                     return Ok(addr.to_string());
                 },
-                IpAddr::V6(addr) => {}
+                IpAddr::V6(_) => {}
             }
         }
     }

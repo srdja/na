@@ -26,6 +26,7 @@ extern crate url;
 extern crate mustache;
 extern crate get_if_addrs;
 extern crate multipart;
+extern crate hyper_router;
 
 
 macro_rules! println_cond {
@@ -54,10 +55,18 @@ mod static_r;
 
 use getopts::Options;
 use hyper::server::{Handler, Server};
+use hyper_router::{RouterBuilder, Route};
 use directory::Directory;
-use request::RequestHandler;
+
+use request::{HandlerState,
+              IndexHandler,
+              FileDownloadHandler,
+              FileUploadHandler,
+              StaticResourceHandler};
+
 use static_r::Resource;
 
+use std::sync::Arc;
 use std::path::PathBuf;
 use std::env;
 
@@ -149,10 +158,9 @@ directory is served by default if none is pecified.", "PATH");
         },
     };
 
-    let str_path    = current_dir.to_str().unwrap().clone().to_string();
-    let directory   = Directory::new(current_dir);
-    let static_res  = Resource::new();
-    let req_handler = RequestHandler::new(directory, static_res, matches.opt_present("v"));
+    let str_path   = current_dir.to_str().unwrap().clone().to_string();
+    let directory  = Directory::new(current_dir);
+    let static_res = Resource::new();
 
     let srv = match Server::http(&*addr_and_port) {
         Ok(s)  => s,
@@ -163,7 +171,27 @@ directory is served by default if none is pecified.", "PATH");
     };
     println!("Serving contents of {} at http://{}", str_path, addr_and_port);
 
-    srv.handle(req_handler).unwrap();
+    let hs = Arc::new(HandlerState {
+        v: matches.opt_present("v"),
+        d: directory,
+        r: static_res
+    });
+
+    let index_handler = IndexHandler(hs.clone());
+    let dl_handler = FileDownloadHandler(hs.clone());
+    let ul_handler = FileUploadHandler(hs.clone());
+    let rs_handler = StaticResourceHandler(hs.clone());
+
+    let router = RouterBuilder::new()
+        .add(Route::get(r"(/|/index.html)").using(index_handler))
+        .add(Route::post("(/|/index.html)").using(ul_handler))
+        .add(Route::get(r"/files/[^/]+$").using(dl_handler))
+        .add(Route::get(r"/resource/[^/]+$").using(rs_handler))
+        .set_handler_404(request::handler_404)
+        .set_handler_500(request::handler_500)
+        .build();
+
+    let _ = srv.handle(router);
 }
 
 

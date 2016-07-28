@@ -53,9 +53,9 @@ impl Directory {
             let pu = p.unwrap();
             if pu.file_type().unwrap().is_file() {
                 files.insert(
-                    format!("/{}", pu.file_name().into_string().unwrap()),
+                    pu.file_name().into_string().unwrap(),
                     FileMeta {
-                        name: format!("{}",  pu.file_name().into_string().unwrap()),
+                        name: pu.file_name().into_string().unwrap(),
                         size: pu.metadata().unwrap().len(),
                    //     modified: pu.metadata().unwrap().modified().unwrap()
                     });

@@ -52,12 +52,12 @@ fn format_size(bytes: u64) -> String {
 
 
 pub fn render_html(template: String, res: &HashMap<String, FileMeta>) -> String {
-    let root = MapBuilder::new().insert_vec("files", |hash_build| {
+    let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();
         for (uri, name) in res {
             data = data.push_map(|builder| {
                 builder
-                    .insert_str("url".to_string(), uri)
+                    .insert_str("url", format!("/files/{}", uri))
                     .insert_str("name".to_string(), name.name.clone())
                     .insert_str("size".to_string(), format_size(name.size))
                     .insert_str("size-bytes".to_string(), format!("{}", name.size))
