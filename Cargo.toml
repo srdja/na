@@ -21,5 +21,9 @@ default-features = false
 [dependencies.url]
 git = "https://github.com/servo/rust-url"
 
+[dependencies.hyper-router]
+git = "https://github.com/srdja/hyper-router.git"
+branch = "hyper-handler"
+
 [build-dependencies]
 gcc = "*"
