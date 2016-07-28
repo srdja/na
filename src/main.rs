@@ -49,7 +49,7 @@ macro_rules! printerr_cond {
 
 mod ip;
 mod directory;
-mod request;
+mod routes;
 mod template;
 mod static_r;
 
@@ -58,11 +58,11 @@ use hyper::server::{Handler, Server};
 use hyper_router::{RouterBuilder, Route};
 use directory::Directory;
 
-use request::{HandlerState,
-              IndexHandler,
-              FileDownloadHandler,
-              FileUploadHandler,
-              StaticResourceHandler};
+use routes::{HandlerState,
+             IndexHandler,
+             FileDownloadHandler,
+             FileUploadHandler,
+             StaticResourceHandler};
 
 use static_r::Resource;
 
@@ -80,11 +80,15 @@ fn main() {
 
     let mut opts = Options::new();
     opts.optflag("h", "help", "Print this help message");
-    opts.optopt("d", "dir", "Path of the served directory. Working
-directory is served by default if none is pecified.", "PATH");
+    opts.optopt("d", "dir", "Path of the served directory. Working \
+                             directory is served by default if none \
+                             is pecified.", "PATH");
     opts.optopt("p", "port", "Port number", "NUMBER");
-    opts.optflag("o", "overwrite-file", "If set, uploaded files will overwrite existing files with the same name.");
-    opts.optopt("i", "interface", "Specify an interface to use (eg. \"eth0\", \"wlo0\", \"localhost\")", "INTERFACE");
+    opts.optflag("o", "overwrite-file", "If set, uploaded files will\
+                                         overwrite existing files with\
+                                         the same name.");
+    opts.optopt("i", "interface", "Specify an interface to use (eg. \"eth0\", \
+                                   \"wlo0\", \"localhost\")", "INTERFACE");
     opts.optflag("l", "list-interfaces", "Print a list of available interfaces");
     opts.optflag("v", "verbose", "Verbose output");
     opts.optflag("", "version", "Print version info");
@@ -187,8 +191,8 @@ directory is served by default if none is pecified.", "PATH");
         .add(Route::post("(/|/index.html)").using(ul_handler))
         .add(Route::get(r"/files/[^/]+$").using(dl_handler))
         .add(Route::get(r"/resource/[^/]+$").using(rs_handler))
-        .set_handler_404(request::handler_404)
-        .set_handler_500(request::handler_500)
+        .set_handler_404(routes::handler_404)
+        .set_handler_500(routes::handler_500)
         .build();
 
     let _ = srv.handle(router);
