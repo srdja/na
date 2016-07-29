@@ -10,6 +10,7 @@ getopts = "*"
 regex = "*"
 mustache = "*"
 get_if_addrs = "0.4.0"
+chrono = "0.2"
 
 [dependencies.multipart]
 git = "https://github.com/srdja/multipart.git"

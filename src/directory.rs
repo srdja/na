@@ -20,6 +20,12 @@
 use std::fs;
 use std::path::PathBuf;
 use std::collections::HashMap;
+use std::time::UNIX_EPOCH;
+use chrono::naive::datetime::NaiveDateTime;
+use chrono::datetime::DateTime;
+use chrono::offset::TimeZone;
+use chrono::offset::local::Local;
+use chrono::offset::LocalResult;
 
 
 pub struct Directory {
@@ -30,7 +36,7 @@ pub struct Directory {
 pub struct FileMeta {
     pub name: String,
     pub size: u64,
-//    pub modified: SystemTime
+    pub modified: Option<DateTime<Local>>
 }
 
 
@@ -52,12 +58,29 @@ impl Directory {
         for p in paths {
             let pu = p.unwrap();
             if pu.file_type().unwrap().is_file() {
+                let date = match pu.metadata().unwrap().modified() {
+                    Ok(systime) => {
+                        match systime.duration_since(UNIX_EPOCH) {
+                            Ok(since_unix) => {
+                                let ndt = NaiveDateTime::from_timestamp(
+                                    since_unix.as_secs() as i64,
+                                    since_unix.subsec_nanos());
+                                 match Local.offset_from_local_datetime(&ndt) {
+                                    LocalResult::Single(t) => Some(DateTime::from_utc(ndt, t)),
+                                    _ => None
+                                 }
+                            },
+                            Err(_) => None
+                        }
+                    },
+                    Err(_) => None
+                };
                 files.insert(
                     pu.file_name().into_string().unwrap(),
                     FileMeta {
                         name: pu.file_name().into_string().unwrap(),
                         size: pu.metadata().unwrap().len(),
-                   //     modified: pu.metadata().unwrap().modified().unwrap()
+                        modified: date
                     });
             }
         }

@@ -30,6 +30,7 @@ extern crate mustache;
 extern crate get_if_addrs;
 extern crate multipart;
 extern crate hyper_router;
+extern crate chrono;
 
 
 macro_rules! println_cond {
