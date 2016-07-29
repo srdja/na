@@ -36,18 +36,28 @@ pub fn interface_exists(iface: String) -> bool {
 }
 
 
-pub fn get_iface_addr(iface: String) -> Result<String, String> {
+pub fn get_iface_addr(iface: String, ipv6: bool) -> Result<String, String> {
     if iface == "localhost" {
-        return Ok("127.0.0.1".to_string());
+        if ipv6 {
+            return Ok("::1".to_string());
+        } else {
+            return Ok("127.0.0.1".to_string());
+        }
     }
     let ifaces = get_if_addrs::get_if_addrs().unwrap();
     for i in ifaces {
         if i.name == iface {
             match i.ip() {
                 IpAddr::V4(addr) => {
-                    return Ok(addr.to_string());
+                    if !ipv6 {
+                        return Ok(addr.to_string());
+                    }
                 },
-                IpAddr::V6(_) => {}
+                IpAddr::V6(addr) => {
+                    if ipv6 {
+                        return Ok(addr.to_string());
+                    }
+                }
             }
         }
     }
@@ -56,11 +66,18 @@ pub fn get_iface_addr(iface: String) -> Result<String, String> {
 
 
 /// Returns the first local address
-pub fn get_local_addr() -> Option<String> {
+pub fn get_local_addr(ipv6: bool) -> Option<String> {
     let mut ifaces = get_if_addrs::get_if_addrs().unwrap();
     ifaces.sort_by(|a, b| {
-        let aip = match a.ip() {IpAddr::V4(addr) => addr.is_private(), _ => false};
-        let bip = match b.ip() {IpAddr::V4(addr) => addr.is_private(), _ => false};
+        let aip;
+        let bip;
+        if ipv6 {
+            aip = match a.ip() {IpAddr::V6(addr) => addr.is_unicast_link_local(), _ => false};
+            bip = match b.ip() {IpAddr::V6(addr) => addr.is_unicast_link_local(), _ => false};
+        } else {
+            aip = match a.ip() {IpAddr::V4(addr) => addr.is_private(), _ => false};
+            bip = match b.ip() {IpAddr::V4(addr) => addr.is_private(), _ => false};
+        }
         if aip && !bip {
             Ordering::Less
         } else if aip && bip {

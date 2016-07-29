@@ -18,6 +18,9 @@
  */
 
 
+#![feature(ip)]
+
+
 extern crate getopts;
 extern crate hyper;
 extern crate mime;
@@ -89,6 +92,7 @@ fn main() {
                                          the same name.");
     opts.optopt("i", "interface", "Specify an interface to use (eg. \"eth0\", \
                                    \"wlo0\", \"localhost\")", "INTERFACE");
+    opts.optflag("6", "ipv6", "Use ipv6 if available");
     opts.optflag("l", "list-interfaces", "Print a list of available interfaces");
     opts.optflag("v", "verbose", "Verbose output");
     opts.optflag("", "version", "Print version info");
@@ -135,7 +139,7 @@ fn main() {
     let address = match matches.opt_str("i") {
         Some(a) => {
             if ip::interface_exists(a.clone()) {
-                match ip::get_iface_addr(a) {
+                match ip::get_iface_addr(a, matches.opt_present("6")) {
                     Ok(i)  => Some(i),
                     Err(e) => {
                         println!("{}", e);
@@ -148,19 +152,18 @@ fn main() {
             }
         },
         None => {
-            ip::get_local_addr()
+            ip::get_local_addr(matches.opt_present("6"))
         }
     };
 
-    let addr_and_port = match address {
-        Some(a) => {
-            format!("{}:{}", a, port)
-        },
+    let addr = match address {
+        Some(a) => a,
         None => {
             printerr_cond!(true, "Error: No active network interfaces found!");
             return;
-        },
+        }
     };
+    let addr_and_port = format!("{}:{}", addr, port);
 
     let str_path   = current_dir.to_str().unwrap().clone().to_string();
     let directory  = Directory::new(current_dir);
@@ -173,7 +176,11 @@ fn main() {
             return;
         }
     };
-    println!("Serving contents of {} at http://{}", str_path, addr_and_port);
+    if matches.opt_present("6") {
+        println!("Serving contents of {} at http://[{}]:{}", str_path, addr, port);
+    } else {
+        println!("Serving contents of {} at http://{}", str_path, addr_and_port);
+    }
 
     let hs = Arc::new(HandlerState {
         v: matches.opt_present("v"),
