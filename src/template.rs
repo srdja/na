@@ -99,7 +99,6 @@ fn date_format(date: &DateTime<Local>) -> String {
 }
 
 
-
 pub fn render_html(template: String, res: &HashMap<String, FileMeta>) -> String {
     let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();
@@ -125,4 +124,28 @@ pub fn render_html(template: String, res: &HashMap<String, FileMeta>) -> String 
     template.render_data(&mut buff, &root);
 
     String::from_utf8(buff).unwrap()
+}
+
+
+pub fn render_json(res: &HashMap<String, FileMeta>) -> String {
+    let mut response = String::new();
+    let tlen = res.len();
+
+    response.push_str("[\n");
+    for (i, (_, meta)) in res.iter().enumerate() {
+        response.push_str("  {\n");
+        response.push_str(&format!("    \"name\" : \"{}\",\n", meta.name.clone()));
+        response.push_str(&format!("    \"modified\" : \"{}\",\n", match meta.modified {
+            Some(d) => date_format(&d),
+            None => "n/a".to_string()
+        }));
+        response.push_str(&format!("    \"size\" : \"{}\"\n", format_size(meta.size)));
+        if i < (tlen - 1) {
+            response.push_str("  },\n");
+        } else {
+            response.push_str("  }\n");
+        }
+    }
+    response.push_str("]\n");
+    response
 }

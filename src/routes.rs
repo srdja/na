@@ -54,6 +54,7 @@ pub struct FileDownloadHandler   (pub Arc<HandlerState>);
 pub struct FileUploadHandler     (pub Arc<HandlerState>);
 pub struct IndexHandler          (pub Arc<HandlerState>);
 pub struct StaticResourceHandler (pub Arc<HandlerState>);
+pub struct JSONHandler           (pub Arc<HandlerState>);
 
 
 pub fn handler_400(mut res: Response) {
@@ -96,6 +97,15 @@ impl Handler for IndexHandler {
         let resource = self.0.d.list_available_resources();
         let rendered = template::render_html(self.0.r.r.get("/resource/index.html")
                                              .unwrap().to_string(), &resource);
+        res.send(rendered.as_bytes()).unwrap();
+    }
+}
+
+
+impl Handler for JSONHandler {
+    fn handle(&self, _: Request, res: Response) {
+        let resource = self.0.d.list_available_resources();
+        let rendered = template::render_json(&resource);
         res.send(rendered.as_bytes()).unwrap();
     }
 }
