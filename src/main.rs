@@ -58,7 +58,7 @@ mod template;
 mod static_r;
 
 use getopts::Options;
-use hyper::server::{Handler, Server};
+use hyper::server::Server;
 use hyper_router::{RouterBuilder, Route};
 use directory::Directory;
 
