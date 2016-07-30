@@ -1,7 +1,7 @@
 [package]
 name = "na"
-version = "0.0.1"
-authors = ["srdja <i@srdja.me>"]
+version = "0.1.0"
+authors = ["srdja <sp@srdja.me>"]
 build = "build.rs"
 
 [dependencies]

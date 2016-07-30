@@ -1,7 +1,7 @@
 /*
  * na
  *
- * Copyright (C) 2016 Srđan Panić <i@srdja.me>
+ * Copyright (C) 2016 Srđan Panić <sp@srdja.me>
  *
  * na is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ use std::path::PathBuf;
 use std::env;
 
 
-const VERSION: &'static str = "0.0.1";
+const VERSION: &'static str = "0.1.0";
 
 
 fn main() {
@@ -218,7 +218,7 @@ fn print_help(name: &str, opts: Options) {
 
 fn print_version_info() {
     println!("na {}
-Copyright (C) 2016 Srđan Panić <i@srdja.me>.
+Copyright (C) 2016 Srđan Panić <sp@srdja.me>.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.", VERSION);

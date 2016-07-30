@@ -1,7 +1,7 @@
 /*
  * na
  *
- * Copyright (C) 2016 Srđan Panić <i@srdja.me>
+ * Copyright (C) 2016 Srđan Panić <sp@srdja.me>
  *
  * na is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
