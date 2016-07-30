@@ -56,7 +56,7 @@ pub struct IndexHandler          (pub Arc<HandlerState>);
 pub struct StaticResourceHandler (pub Arc<HandlerState>);
 
 
-pub fn handler_400(_: Request, mut res: Response) {
+pub fn handler_400(mut res: Response) {
     {
         let stat: &mut StatusCode = res.status_mut();
         *stat = StatusCode::BadRequest;
@@ -187,6 +187,7 @@ impl Handler for FileUploadHandler {
         if multipart.is_none() {
             println_cond!(self.0.v, "Error: Bad POST request from {}. Multipart missing!",
                           remote_address);
+            handler_400(res);
             return;
         }
         let mut mpu = multipart.unwrap();
@@ -194,13 +195,15 @@ impl Handler for FileUploadHandler {
 
         if multipart_field.is_err() {
             println_cond!(self.0.v, "Error: Bad POST request from {}. Multipart field missing!",
-                     remote_address);
+                          remote_address);
+            handler_400(res);
             return;
         }
         let mp_data = multipart_field.unwrap();
         if mp_data.is_none() {
             println_cond!(self.0.v, "Error: Bad POST request from {}. Multipart data missing!",
-                     remote_address);
+                          remote_address);
+            handler_400(res);
             return;
         }
         match mp_data.unwrap().data {
