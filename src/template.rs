@@ -139,7 +139,8 @@ pub fn render_json(res: &HashMap<String, FileMeta>) -> String {
             Some(d) => date_format(&d),
             None => "n/a".to_string()
         }));
-        response.push_str(&format!("    \"size\" : \"{}\"\n", format_size(meta.size)));
+        response.push_str(&format!("    \"size\" : \"{}\",\n", format_size(meta.size)));
+        response.push_str(&format!("    \"size-bytes\" : \"{}\"\n", meta.size));
         if i < (tlen - 1) {
             response.push_str("  },\n");
         } else {
