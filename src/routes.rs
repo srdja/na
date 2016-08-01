@@ -52,7 +52,7 @@ pub struct HandlerState {
 
 pub struct FileDownloadHandler   (pub Arc<HandlerState>);
 pub struct FileUploadHandler     (pub Arc<HandlerState>, pub bool);
-pub struct IndexHandler          (pub Arc<HandlerState>);
+pub struct IndexHandler          (pub Arc<HandlerState>, pub bool);
 pub struct StaticResourceHandler (pub Arc<HandlerState>);
 pub struct JSONHandler           (pub Arc<HandlerState>);
 pub struct DeleteHandler         (pub Arc<HandlerState>, pub bool);
@@ -117,7 +117,7 @@ impl Handler for IndexHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
         let rendered = template::render_html(self.0.r.r.get("/resource/index.html")
-                                             .unwrap().to_string(), &resource);
+                                             .unwrap().to_string(), &resource, self.1);
         res.send(rendered.as_bytes()).unwrap();
     }
 }
@@ -172,15 +172,15 @@ impl Handler for DeleteHandler {
                 println_cond!(self.0.v, "Deleted file {}", p);
                 {
                     let stat: &mut StatusCode = res.status_mut();
-                    *stat = StatusCode::Found;
+                    *stat = StatusCode::Ok;
                 }
-                res.headers_mut().set(Location("/".to_string()));
+//                res.headers_mut().set(Location("/".to_string()));
                 res.send(format!("Successfully deleted file {}\n",
                                  str_name)
                          .as_bytes()).unwrap();
 
                 println_cond!(self.0.v, "Sending status code {}",
-                              StatusCode::Found.to_string());
+                              StatusCode::Ok.to_string());
             },
             Err(e) => {
                 printerr_cond!(self.0.v, "Error: {}", e);
