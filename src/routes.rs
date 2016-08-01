@@ -57,12 +57,11 @@ pub struct StaticResourceHandler (pub Arc<HandlerState>);
 pub struct JSONHandler           (pub Arc<HandlerState>);
 
 
-pub fn handler_400(mut res: Response) {
+pub fn handler_400(mut res: Response, msg: &str) {
     {
         let stat: &mut StatusCode = res.status_mut();
         *stat = StatusCode::BadRequest;
     }
-    let msg = "400 bad request";
     res.send(msg.as_bytes()).unwrap();
 }
 
@@ -74,7 +73,7 @@ pub fn handler_404(_: Request, mut res: Response) {
     }
     let msg = "<html><head><meta charset=\"utf-8\"></head>\
                <body><pre>¯\\(º_o)/¯ 404 sorry, can't find that...</pre>\
-               \n<a href=/><pre>Try going back</pre></a></body></html>";
+               \n<a href=/><pre>Try going back</pre></a></body></html>\n";
     res.send(msg.as_bytes()).unwrap();
 }
 
@@ -87,7 +86,7 @@ pub fn handler_500(_: Request, mut res: Response) {
     let msg = "<html><head><meta charset=\"utf-8\"></head>\
                <body><pre>(╯°□°)╯︵ ┻━┻ 500 internal server error... \n \
                It's probably nothing, but then again, maybe the server is on fire!</pre>\
-               \n<a href=/><pre>Try going back</pre></a></body></html>";
+               \n<a href=/><pre>Try going back</pre></a></body></html>\n";
     res.send(msg.as_bytes()).unwrap();
 }
 
@@ -191,35 +190,40 @@ impl Handler for FileDownloadHandler {
 impl Handler for FileUploadHandler {
     fn handle(&self, req: Request, mut res: Response) {
         let remote_address = req.remote_addr.to_string();
-        println_cond!(self.0.v, "Receiving a POST request from {}", remote_address);
+        println_cond!(self.0.v, "Receiving a POST request from {}",
+                      remote_address);
 
         let multipart = Multipart::from_request(req).ok();
         if multipart.is_none() {
-            println_cond!(self.0.v, "Error: Bad POST request from {}. Multipart missing!",
+            println_cond!(self.0.v, "Error: Bad POST request from {}. \
+                                     Multipart missing!",
                           remote_address);
-            handler_400(res);
+            handler_400(res, "400 Bad Request. Multipart missing!\n");
             return;
         }
         let mut mpu = multipart.unwrap();
         let multipart_field = mpu.read_entry();
 
         if multipart_field.is_err() {
-            println_cond!(self.0.v, "Error: Bad POST request from {}. Multipart field missing!",
+            println_cond!(self.0.v, "Error: Bad POST request from {}. \
+                                     Multipart field missing!",
                           remote_address);
-            handler_400(res);
+            handler_400(res, "400 Bad Request. Multipart field missing!\n");
             return;
         }
         let mp_data = multipart_field.unwrap();
         if mp_data.is_none() {
-            println_cond!(self.0.v, "Error: Bad POST request from {}. Multipart data missing!",
+            println_cond!(self.0.v, "Error: Bad POST request from {}. \
+                                     Multipart data missing!",
                           remote_address);
-            handler_400(res);
+            handler_400(res, "400 Bad Request. Multipart data missing!\n");
             return;
         }
         match mp_data.unwrap().data {
             MultipartData::File(mut file) => {
-                let name = self.0.d.get_available_name(file.filename().unwrap().to_string());
-                let path = self.0.d.full_path(name.clone());
+                let name = file.filename().unwrap().to_string();
+                let aname = self.0.d.get_available_name(name.clone());
+                let path = self.0.d.full_path(aname.clone());
                 match file.save_as(path) {
                     Ok(f) => {
                         let p = f.path.to_str().unwrap();
@@ -229,8 +233,11 @@ impl Handler for FileUploadHandler {
                             *stat = StatusCode::Found;
                         }
                         res.headers_mut().set(Location("/".to_string()));
-                        res.send(b"a").unwrap();
-                        println_cond!(self.0.v, "Sending status code {}", StatusCode::Found.to_string());
+                        res.send(format!("Successfully uploaded local file \"{}\" as \"{}\"\n",
+                                         name, aname)
+                                 .as_bytes()).unwrap();
+                        println_cond!(self.0.v, "Sending status code {}",
+                                      StatusCode::Found.to_string());
                     },
                     Err(e) => {
                         println_cond!(self.0.v, "Error: Couldn't save {} to disk! \
