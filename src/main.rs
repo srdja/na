@@ -192,7 +192,7 @@ fn main() {
 
     let index_handler = IndexHandler(hs.clone());
     let dl_handler = FileDownloadHandler(hs.clone());
-    let ul_handler = FileUploadHandler(hs.clone());
+    let ul_handler = FileUploadHandler(hs.clone(), matches.opt_present("o"));
     let rs_handler = StaticResourceHandler(hs.clone());
     let json_handler = JSONHandler(hs.clone());
 

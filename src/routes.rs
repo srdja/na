@@ -51,7 +51,7 @@ pub struct HandlerState {
 
 
 pub struct FileDownloadHandler   (pub Arc<HandlerState>);
-pub struct FileUploadHandler     (pub Arc<HandlerState>);
+pub struct FileUploadHandler     (pub Arc<HandlerState>, pub bool);
 pub struct IndexHandler          (pub Arc<HandlerState>);
 pub struct StaticResourceHandler (pub Arc<HandlerState>);
 pub struct JSONHandler           (pub Arc<HandlerState>);
@@ -222,7 +222,11 @@ impl Handler for FileUploadHandler {
         match mp_data.unwrap().data {
             MultipartData::File(mut file) => {
                 let name = file.filename().unwrap().to_string();
-                let aname = self.0.d.get_available_name(name.clone());
+                let aname = if self.1 {
+                    name.clone()
+                } else {
+                    self.0.d.get_available_name(name.clone())
+                };
                 let path = self.0.d.full_path(aname.clone());
                 match file.save_as(path) {
                     Ok(f) => {
@@ -233,9 +237,17 @@ impl Handler for FileUploadHandler {
                             *stat = StatusCode::Found;
                         }
                         res.headers_mut().set(Location("/".to_string()));
-                        res.send(format!("Successfully uploaded local file \"{}\" as \"{}\"\n",
-                                         name, aname)
-                                 .as_bytes()).unwrap();
+                        if self.1 {
+                            res.send(format!("Successfully overwritten remote file \"{}\" \
+                                              with local file \"{}\"\n",
+                                             aname, name)
+                                     .as_bytes()).unwrap();
+                        } else {
+                            res.send(format!("Successfully uploaded local file \"{}\" as \"{}\"\n",
+                                             name, aname)
+                                     .as_bytes()).unwrap();
+                        }
+
                         println_cond!(self.0.v, "Sending status code {}",
                                       StatusCode::Found.to_string());
                     },
