@@ -65,6 +65,7 @@ use directory::Directory;
 use routes::{HandlerState,
              IndexHandler,
              FileDownloadHandler,
+             PlainHandler,
              DeleteHandler,
              FileUploadHandler,
              JSONHandler,
@@ -199,6 +200,7 @@ fn main() {
     let rs_handler = StaticResourceHandler(hs.clone());
     let json_handler = JSONHandler(hs.clone());
     let delete_handler = DeleteHandler(hs.clone(), matches.opt_present("r"));
+    let plain_handler = PlainHandler(hs.clone());
 
     let router = RouterBuilder::new()
         .add(Route::get(r"(/|/index.html)").using(index_handler))
@@ -207,6 +209,7 @@ fn main() {
         .add(Route::get(r"/files/[^/]+$").using(dl_handler))
         .add(Route::get(r"/resource/[^/]+$").using(rs_handler))
         .add(Route::get(r"/json").using(json_handler))
+        .add(Route::get(r"/plain").using(plain_handler))
         .set_handler_404(routes::handler_404)
         .set_handler_405(routes::handler_405)
         .set_handler_500(routes::handler_500)

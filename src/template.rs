@@ -151,3 +151,12 @@ pub fn render_json(res: &HashMap<String, FileMeta>) -> String {
     response.push_str("]\n");
     response
 }
+
+
+pub fn render_plain(res: &HashMap<String, FileMeta>) -> String {
+    let mut response = String::new();
+    for (_, meta) in res {
+        response.push_str(&format!("{}\n", meta.name.clone()));
+    }
+    response
+}
