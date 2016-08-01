@@ -55,6 +55,7 @@ pub struct FileUploadHandler     (pub Arc<HandlerState>, pub bool);
 pub struct IndexHandler          (pub Arc<HandlerState>);
 pub struct StaticResourceHandler (pub Arc<HandlerState>);
 pub struct JSONHandler           (pub Arc<HandlerState>);
+pub struct DeleteHandler         (pub Arc<HandlerState>, pub bool);
 
 
 pub fn handler_400(mut res: Response, msg: &str) {
@@ -74,6 +75,16 @@ pub fn handler_404(_: Request, mut res: Response) {
     let msg = "<html><head><meta charset=\"utf-8\"></head>\
                <body><pre>¯\\(º_o)/¯ 404 sorry, can't find that...</pre>\
                \n<a href=/><pre>Try going back</pre></a></body></html>\n";
+    res.send(msg.as_bytes()).unwrap();
+}
+
+
+pub fn handler_405(_: Request, mut res: Response) {
+    {
+        let stat: &mut StatusCode = res.status_mut();
+        *stat = StatusCode::MethodNotAllowed;
+    }
+    let msg = "Method Not Allowed (405). DELETE is not enabled.\n";
     res.send(msg.as_bytes()).unwrap();
 }
 
@@ -106,6 +117,65 @@ impl Handler for JSONHandler {
         let resource = self.0.d.list_available_resources();
         let rendered = template::render_json(&resource);
         res.send(rendered.as_bytes()).unwrap();
+    }
+}
+
+
+impl Handler for DeleteHandler {
+    fn handle(&self, req: Request, mut res: Response) {
+        if !self.1 {
+            handler_405(req, res);
+            return;
+        }
+        let resources = self.0.d.list_available_resources();
+
+        let uri: String = match req.uri {
+            RequestUri::AbsolutePath(ref path) => {
+                percent_decode((&path).as_bytes()).decode_utf8().unwrap().deref().to_string()
+            },
+            _ => {
+                handler_404(req, res);
+                return;
+            }
+        };
+        println_cond!(self.0.v, "Receiving a DELETE request from {} for {}",
+                      req.remote_addr.to_string(), uri);
+
+
+        let segments: Vec<&str> = uri.split("/").collect();
+        let str_name = segments.last().unwrap().to_string();
+        let mut name: Vec<u8> = Vec::new();
+        name.extend_from_slice(str_name.as_bytes());
+
+        if !resources.contains_key(&str_name) {
+            handler_404(req, res);
+            return;
+        }
+
+        let r_name = resources.get(&str_name).unwrap().clone();
+        let path = self.0.d.full_path(r_name.name.clone());
+
+        match fs::remove_file(path.clone()) {
+            Ok(_) => {
+                let p = path.to_str().unwrap();
+                println_cond!(self.0.v, "Deleted file {}", p);
+                {
+                    let stat: &mut StatusCode = res.status_mut();
+                    *stat = StatusCode::Found;
+                }
+                res.headers_mut().set(Location("/".to_string()));
+                res.send(format!("Successfully deleted file {}\n",
+                                 str_name)
+                         .as_bytes()).unwrap();
+
+                println_cond!(self.0.v, "Sending status code {}",
+                              StatusCode::Found.to_string());
+            },
+            Err(e) => {
+                printerr_cond!(self.0.v, "Error: {}", e);
+                handler_500(req, res);
+            }
+        }
     }
 }
 

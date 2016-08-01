@@ -65,6 +65,7 @@ use directory::Directory;
 use routes::{HandlerState,
              IndexHandler,
              FileDownloadHandler,
+             DeleteHandler,
              FileUploadHandler,
              JSONHandler,
              StaticResourceHandler};
@@ -88,6 +89,8 @@ fn main() {
     opts.optopt("d", "dir", "Path of the served directory. Working \
                              directory is served by default if none \
                              is pecified.", "PATH");
+    opts.optflag("r", "allow-remove", "If set, na will allow file deletions \
+                                       trough DELETE requests");
     opts.optopt("p", "port", "Port number", "NUMBER");
     opts.optflag("o", "overwrite-file", "If set, uploaded files will\
                                          overwrite existing files with\
@@ -195,10 +198,12 @@ fn main() {
     let ul_handler = FileUploadHandler(hs.clone(), matches.opt_present("o"));
     let rs_handler = StaticResourceHandler(hs.clone());
     let json_handler = JSONHandler(hs.clone());
+    let delete_handler = DeleteHandler(hs.clone(), matches.opt_present("r"));
 
     let router = RouterBuilder::new()
         .add(Route::get(r"(/|/index.html)").using(index_handler))
-        .add(Route::post("(/|/index.html)").using(ul_handler))
+        .add(Route::post(r"(/|/index.html)").using(ul_handler))
+        .add(Route::delete(r"/files/[^/]+$").using(delete_handler))
         .add(Route::get(r"/files/[^/]+$").using(dl_handler))
         .add(Route::get(r"/resource/[^/]+$").using(rs_handler))
         .add(Route::get(r"/json").using(json_handler))
