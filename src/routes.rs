@@ -278,6 +278,16 @@ impl Handler for FileDownloadHandler {
 }
 
 
+use rustc_serialize::json;
+
+
+#[derive(RustcDecodable, RustcEncodable)]
+pub struct SavedFile {
+    source_name: String,
+    saved_name:  String
+}
+
+
 impl Handler for FileUploadHandler {
     fn handle(&self, req: Request, mut res: Response) {
         let remote_address = req.remote_addr.to_string();
@@ -292,64 +302,51 @@ impl Handler for FileUploadHandler {
             handler_400(res, "400 Bad Request. Multipart missing!\n");
             return;
         }
+
         let mut mpu = multipart.unwrap();
-        let multipart_field = mpu.read_entry();
+        let mut saved_files: Vec<SavedFile> = Vec::new();
 
-        if multipart_field.is_err() {
-            println_cond!(self.0.v, "Error: Bad POST request from {}. \
-                                     Multipart field missing!",
-                          remote_address);
-            handler_400(res, "400 Bad Request. Multipart field missing!\n");
-            return;
-        }
-        let mp_data = multipart_field.unwrap();
-        if mp_data.is_none() {
-            println_cond!(self.0.v, "Error: Bad POST request from {}. \
-                                     Multipart data missing!",
-                          remote_address);
-            handler_400(res, "400 Bad Request. Multipart data missing!\n");
-            return;
-        }
-        match mp_data.unwrap().data {
-            MultipartData::File(mut file) => {
-                let name = file.filename().unwrap().to_string();
-                let aname = if self.1 {
-                    name.clone()
-                } else {
-                    self.0.d.get_available_name(name.clone())
-                };
-                let path = self.0.d.full_path(aname.clone());
-                match file.save_as(path) {
-                    Ok(f) => {
-                        let p = f.path.to_str().unwrap();
-                        println_cond!(self.0.v, "Written {} bytes to {}", f.size, p);
-                        {
-                            let stat: &mut StatusCode = res.status_mut();
-                            *stat = StatusCode::Found;
+        while let Ok(Some(field)) = mpu.read_entry() {
+            match field.data {
+                MultipartData::File(mut file) => {
+                    let src_name = file.filename().unwrap().to_string(); // FIXME: unwrap
+                    let available_name = if self.1 {
+                        src_name.clone()
+                    } else {
+                        self.0.d.get_available_name(src_name.clone())
+                    };
+                    let path = self.0.d.full_path(available_name.clone());
+                    match file.save_as(path) {
+                        Ok(f) => {
+                            let p = f.path.to_str().unwrap();
+                            println_cond!(self.0.v, "Written {} bytes to {}", f.size, p);
+                            saved_files.push(
+                                SavedFile {
+                                    source_name: src_name.clone(),
+                                    saved_name: available_name.clone()
+                                });
+                        },
+                        Err(e) => {
+                            println_cond!(self.0.v, "Error: Couldn't save {} to disk! \
+                                                     {}", available_name, e);
                         }
-                        res.headers_mut().set(Location("/".to_string()));
-                        if self.1 {
-                            res.send(format!("Successfully overwritten remote file \"{}\" \
-                                              with local file \"{}\"\n",
-                                             aname, name)
-                                     .as_bytes()).unwrap();
-                        } else {
-                            res.send(format!("Successfully uploaded local file \"{}\" as \"{}\"\n",
-                                             name, aname)
-                                     .as_bytes()).unwrap();
-                        }
-
-                        println_cond!(self.0.v, "Sending status code {}",
-                                      StatusCode::Found.to_string());
-                    },
-                    Err(e) => {
-                        println_cond!(self.0.v, "Error: Couldn't save {} to disk! \
-                                                 {}", name, e);
                     }
-                }
+                },
+                MultipartData::Text(_) => {}
             }
-            MultipartData::Text(_) => {},
         }
+        {let stat = res.status_mut();
+         *stat = StatusCode::Found;}
+
+        res.headers_mut().set(Location("/".to_string()));
+
+        let saved_files_json = json::encode(&saved_files).unwrap();
+
+        res.send(format!("{}\n", saved_files_json).as_bytes()).unwrap();
+
+        println_cond!(self.0.v, "Sending status code {}",
+                      StatusCode::Found.to_string());
+
     }
 }
 

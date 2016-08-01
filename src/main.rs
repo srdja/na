@@ -31,6 +31,7 @@ extern crate get_if_addrs;
 extern crate multipart;
 extern crate hyper_router;
 extern crate chrono;
+extern crate rustc_serialize;
 
 
 macro_rules! println_cond {
