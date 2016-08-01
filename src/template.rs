@@ -99,7 +99,7 @@ fn date_format(date: &DateTime<Local>) -> String {
 }
 
 
-pub fn render_html(template: String, res: &HashMap<String, FileMeta>) -> String {
+pub fn render_html(template: String, res: &HashMap<String, FileMeta>, del: bool) -> String {
     let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();
         for (uri, name) in res {
@@ -108,6 +108,7 @@ pub fn render_html(template: String, res: &HashMap<String, FileMeta>) -> String 
                     .insert_str("url", format!("/files/{}", uri))
                     .insert_str("name".to_string(), name.name.clone())
                     .insert_str("size".to_string(), format_size(name.size))
+                    .insert_bool("delete".to_string(), del)
                     .insert_str("size-bytes".to_string(), format!("{}", name.size))
                     .insert_str("modified".to_string(),
                                 match name.modified {

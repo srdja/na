@@ -193,7 +193,7 @@ fn main() {
         r: static_res
     });
 
-    let index_handler = IndexHandler(hs.clone());
+    let index_handler = IndexHandler(hs.clone(), matches.opt_present("r"));
     let dl_handler = FileDownloadHandler(hs.clone());
     let ul_handler = FileUploadHandler(hs.clone(), matches.opt_present("o"));
     let rs_handler = StaticResourceHandler(hs.clone());

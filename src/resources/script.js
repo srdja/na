@@ -43,7 +43,28 @@ function sortBySize() {
     }
 }
 
+function deleteResource(event) {
+    var http = new XMLHttpRequest();
+    http.onreadystatechange = function() {
+        if (http.readyState == 4 && http.status == 200) {
+            location.reload(true);
+        }
+    }
+    var t = event.target;
+    http.open("DELETE",
+              t.attributes.getNamedItem("res").value,
+              true);
+
+    http.send(null);
+}
+
 window.onload = function () {
     document.getElementById("hname").onclick = sortByName;
     document.getElementById("hsize").onclick = sortBySize;
+
+    var elements = document.getElementsByClassName('delete-button');
+
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].onclick = deleteResource;
+    }
 }

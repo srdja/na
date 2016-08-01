@@ -19,6 +19,7 @@
           <th id="hname">Name</th>
           <th id="hmodified">Modified</th>
           <th id="hsize">Size</th>
+          {{#delete}}<th id="hdelete"></th>{{/delete}}
         </tr>
         {{#files}}
         <tr class="table-data">
@@ -27,6 +28,11 @@
           </td>
           <td>{{modified}}</td>
           <td data-size="{{size-bytes}}">{{size}}</td>
+          {{#delete}}
+          <td>
+            <button class="delete-button" res="{{url}}">delete</button>
+          </td>
+          {{/delete}}
         </tr>
         {{/files}}
       </table>
