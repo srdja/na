@@ -208,6 +208,7 @@ fn main() {
         .add(Route::get(r"/resource/[^/]+$").using(rs_handler))
         .add(Route::get(r"/json").using(json_handler))
         .set_handler_404(routes::handler_404)
+        .set_handler_405(routes::handler_405)
         .set_handler_500(routes::handler_500)
         .build();
 

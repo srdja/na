@@ -79,12 +79,23 @@ pub fn handler_404(_: Request, mut res: Response) {
 }
 
 
+pub fn handler_405_delete(_: Request, mut res: Response) {
+    {
+        let stat: &mut StatusCode = res.status_mut();
+        *stat = StatusCode::MethodNotAllowed;
+    }
+    let msg = "Method Not Allowed (405). DELETE is not enabled for \
+               /files resources.\n";
+    res.send(msg.as_bytes()).unwrap();
+}
+
+
 pub fn handler_405(_: Request, mut res: Response) {
     {
         let stat: &mut StatusCode = res.status_mut();
         *stat = StatusCode::MethodNotAllowed;
     }
-    let msg = "Method Not Allowed (405). DELETE is not enabled.\n";
+    let msg = "Method Not Allowed (405)\n";
     res.send(msg.as_bytes()).unwrap();
 }
 
@@ -124,7 +135,7 @@ impl Handler for JSONHandler {
 impl Handler for DeleteHandler {
     fn handle(&self, req: Request, mut res: Response) {
         if !self.1 {
-            handler_405(req, res);
+            handler_405_delete(req, res);
             return;
         }
         let resources = self.0.d.list_available_resources();
