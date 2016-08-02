@@ -25,6 +25,7 @@ use std::sync::Arc;
 use std::str;
 use std::ops::Deref;
 use url::percent_encoding::percent_decode;
+use rustc_serialize::json;
 
 use hyper::header::ContentDisposition;
 use hyper::header::DispositionType;
@@ -134,11 +135,10 @@ impl Handler for PlainHandler {
 }
 
 
-
 impl Handler for JSONHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
-        let rendered = format::render_json(&resource);
+        let rendered = json::encode(&resource).unwrap();
         res.send(rendered.as_bytes()).unwrap();
     }
 }
@@ -282,7 +282,7 @@ impl Handler for FileDownloadHandler {
 }
 
 
-use rustc_serialize::json;
+
 
 
 #[derive(RustcDecodable, RustcEncodable)]

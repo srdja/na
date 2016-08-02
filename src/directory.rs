@@ -39,6 +39,7 @@ pub struct Directory {
 }
 
 
+#[derive(RustcDecodable, RustcEncodable)]
 pub struct FileMeta {
     pub name: String,
     pub size: u64,

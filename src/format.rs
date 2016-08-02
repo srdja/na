@@ -130,12 +130,6 @@ pub fn render_html(template: String, res: &Vec<FileMeta>, del: bool, show: bool,
 }
 
 
-pub fn render_json(res: &Vec<FileMeta>) -> String {
-    let mut response = String::new();
-    response
-}
-
-
 pub fn render_plain(res: &Vec<FileMeta>) -> String {
     let mut response = String::new();
     for meta in res {
