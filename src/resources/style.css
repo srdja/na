@@ -2,10 +2,21 @@ body {
     background-color: #fdfdfd;
     font-family: monospace;
     color: #222;
+    min-height: 100%;
+    margin: 0;
+}
+
+html {
+    min-height: 100%;
+    margin: 0;
 }
 
 #files {
     text-align: center;
+}
+
+#dir-name {
+    font-size: 110%
 }
 
 #file-table {
@@ -29,9 +40,6 @@ tr, td {
 
 th {
     cursor: default;
-}
-
-.delete-button {
 }
 
 tr:hover {
