@@ -257,7 +257,7 @@ impl Handler for FileDownloadHandler {
             let read: usize = match file.read(&mut buffer) {
                 Ok (b) => b,
                 Err(e) => {
-                    println_cond!(self.0.verbose,
+                    printerr_cond!(self.0.verbose,
                                   "Error: Unexpected end of stream while reading {}, \
                                    {} bytes read out of {}. [{}]",
                                   path.as_path().to_str().unwrap(), read_total, len, e);
@@ -267,7 +267,7 @@ impl Handler for FileDownloadHandler {
             let sent: usize = match stream.write(&buffer[0 .. read]) {
                 Ok (b) => b,
                 Err(e) => {
-                    println_cond!(self.0.verbose,
+                    printerr_cond!(self.0.verbose,
                                   "Error: Unexpected end of stream while sending {}, \
                                    {} bytes sent out of {}. [{}]",
                                   path.as_path().to_str().unwrap(), sent_total, len, e);
@@ -300,7 +300,7 @@ impl Handler for FileUploadHandler {
 
         let multipart = Multipart::from_request(req).ok();
         if multipart.is_none() {
-            println_cond!(self.0.verbose, "Error: Bad POST request from {}. \
+            printerr_cond!(self.0.verbose, "Error: Bad POST request from {}. \
                                      Multipart missing!",
                           remote_address);
             handler_400(res, "400 Bad Request. Multipart missing!\n");
