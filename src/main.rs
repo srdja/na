@@ -193,18 +193,22 @@ fn main() {
     }
 
     let hs = Arc::new(HandlerState {
-        v: matches.opt_present("v"),
-        d: directory,
-        r: static_res
+        directory: directory,
+        resource:  static_res,
+        verbose:   matches.opt_present("v"),
+        delete:    matches.opt_present("r"),
+        showdir:   matches.opt_present("s"),
+        overwrite: matches.opt_present("o"),
+        path:      str_path.clone()
     });
 
-    let index_handler = IndexHandler(hs.clone(), matches.opt_present("r"), matches.opt_present("s"), str_path.clone());
-    let dl_handler = FileDownloadHandler(hs.clone());
-    let ul_handler = FileUploadHandler(hs.clone(), matches.opt_present("o"));
-    let rs_handler = StaticResourceHandler(hs.clone());
-    let json_handler = JSONHandler(hs.clone());
-    let delete_handler = DeleteHandler(hs.clone(), matches.opt_present("r"));
-    let list_handler = ListHandler(hs.clone());
+    let index_handler  = IndexHandler(hs.clone());
+    let dl_handler     = FileDownloadHandler(hs.clone());
+    let ul_handler     = FileUploadHandler(hs.clone());
+    let rs_handler     = StaticResourceHandler(hs.clone());
+    let json_handler   = JSONHandler(hs.clone());
+    let delete_handler = DeleteHandler(hs.clone());
+    let list_handler   = ListHandler(hs.clone());
 
     let router = RouterBuilder::new()
         .add(Route::get(r"(/|/index.html)").using(index_handler))
