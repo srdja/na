@@ -26,6 +26,7 @@ use chrono::datetime::DateTime;
 use chrono::offset::TimeZone;
 use chrono::offset::local::Local;
 use chrono::offset::LocalResult;
+use std::time::Duration;
 
 
 pub struct Directory {
@@ -36,7 +37,8 @@ pub struct Directory {
 pub struct FileMeta {
     pub name: String,
     pub size: u64,
-    pub modified: Option<DateTime<Local>>
+    pub modified: Option<DateTime<Local>>,
+    pub modified_raw: u64
 }
 
 
@@ -80,7 +82,9 @@ impl Directory {
                     FileMeta {
                         name: pu.file_name().into_string().unwrap(),
                         size: pu.metadata().unwrap().len(),
-                        modified: date
+                        modified: date,
+                        modified_raw: pu.metadata().unwrap()
+                            .modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_secs()
                     });
             }
         }

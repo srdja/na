@@ -111,6 +111,7 @@ pub fn render_html(template: String, res: &HashMap<String, FileMeta>, del: bool,
                     .insert_bool("delete", del)
                     .insert_str("dir", "bla")
                     .insert_str("size-bytes", format!("{}", name.size))
+                    .insert_str("time", format!("{}", name.modified_raw))
                     .insert_str("modified",
                                 match name.modified {
                                     Some(d) => date_format(&d),

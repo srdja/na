@@ -22,6 +22,27 @@ function sortByName() {
     }
 }
 
+function sortByDate() {
+    var table = document.getElementById("file-table");
+    var rows  = Array.prototype.slice.call(table.rows, 1);
+
+    if (dateSorted) {
+        rows.reverse();
+    } else {
+        rows.sort(function (a, b) {
+            var size_a = parseInt(a.cells[1].getAttribute("time"));
+            var size_b = parseInt(b.cells[1].getAttribute("time"));
+            return size_a - size_b;
+        });
+        nameSorted = false;
+        dateSorted = true;
+        sizeSorted = false;
+    }
+    for (var i = 1; i < rows.length; i++) {
+        table.appendChild(rows[i]);
+    }
+}
+
 function sortBySize() {
     var table = document.getElementById("file-table");
     var rows  = Array.prototype.slice.call(table.rows, 1);
@@ -61,6 +82,7 @@ function deleteResource(event) {
 window.onload = function () {
     document.getElementById("hname").onclick = sortByName;
     document.getElementById("hsize").onclick = sortBySize;
+    document.getElementById("hmodified").onclick = sortByDate;
 
     var elements = document.getElementsByClassName('delete-button');
 
