@@ -130,7 +130,7 @@ pub fn render_html(template: String, res: &Vec<FileMeta>, del: bool, show: bool,
 }
 
 
-pub fn render_plain(res: &Vec<FileMeta>) -> String {
+pub fn file_list(res: &Vec<FileMeta>) -> String {
     let mut response = String::new();
     for meta in res {
         response.push_str(&format!("{}\n", meta.name.clone()));

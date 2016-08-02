@@ -57,7 +57,7 @@ pub struct IndexHandler          (pub Arc<HandlerState>, pub bool, pub bool, pub
 pub struct StaticResourceHandler (pub Arc<HandlerState>);
 pub struct JSONHandler           (pub Arc<HandlerState>);
 pub struct DeleteHandler         (pub Arc<HandlerState>, pub bool);
-pub struct PlainHandler          (pub Arc<HandlerState>);
+pub struct ListHandler           (pub Arc<HandlerState>);
 
 
 pub fn handler_400(mut res: Response, msg: &str) {
@@ -126,10 +126,10 @@ impl Handler for IndexHandler {
 }
 
 
-impl Handler for PlainHandler {
+impl Handler for ListHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
-        let rendered = format::render_plain(&resource);
+        let rendered = format::file_list(&resource);
         res.send(rendered.as_bytes()).unwrap();
     }
 }
