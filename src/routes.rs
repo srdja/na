@@ -134,6 +134,7 @@ impl Handler for PlainHandler {
 }
 
 
+
 impl Handler for JSONHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
@@ -169,13 +170,14 @@ impl Handler for DeleteHandler {
         let mut name: Vec<u8> = Vec::new();
         name.extend_from_slice(str_name.as_bytes());
 
-        if !resources.contains_key(&str_name) {
-            handler_404(req, res);
-            return;
-        }
-
-        let r_name = resources.get(&str_name).unwrap().clone();
-        let path = self.0.d.full_path(r_name.name.clone());
+        let resource = match self.0.d.get_resource(&str_name, &resources) {
+            Some(r) => r.name.clone(),
+            None => {
+                handler_404(req, res);
+                return;
+            }
+        };
+        let path = self.0.d.full_path(resource);
 
         match fs::remove_file(path.clone()) {
             Ok(_) => {
@@ -223,13 +225,14 @@ impl Handler for FileDownloadHandler {
         let mut name: Vec<u8> = Vec::new();
         name.extend_from_slice(str_name.as_bytes());
 
-        if !resources.contains_key(&str_name) {
-            handler_404(req, res);
-            return;
-        }
-
-        let r_name = resources.get(&str_name).unwrap().clone();
-        let path = self.0.d.full_path(r_name.name.clone());
+        let resource = match self.0.d.get_resource(&str_name, &resources) {
+            Some(r) => r.name.clone(),
+            None => {
+                handler_404(req, res);
+                return;
+            }
+        };
+        let path = self.0.d.full_path(resource);
         let meta = fs::metadata(&*path).unwrap();
         let mut file: File = File::open(&*path).unwrap();
         let len = meta.len() as usize;

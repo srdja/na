@@ -55,8 +55,7 @@ fn format_size(bytes: u64) -> String {
     }
 }
 
-
-fn weekday_to_string(wd: Weekday) -> String {
+pub fn weekday_to_string(wd: Weekday) -> String {
     match wd {
         Weekday::Mon => "Mon".to_string(),
         Weekday::Tue => "Tue".to_string(),
@@ -69,7 +68,7 @@ fn weekday_to_string(wd: Weekday) -> String {
 }
 
 
-fn month_to_string(month: u32) -> String {
+pub fn month_to_string(month: u32) -> String {
     match month {
         1 => "Jan".to_string(),
         2 => "Feb".to_string(),
@@ -88,7 +87,7 @@ fn month_to_string(month: u32) -> String {
 }
 
 
-fn date_format(date: &DateTime<Local>) -> String {
+pub fn date_format(date: &DateTime<Local>) -> String {
     let hour = if date.hour()   > 9 {format!("{}", date.hour())}   else {format!("0{}", date.hour())};
     let minute = if date.minute() > 9 {format!("{}", date.minute())} else {format!("0{}", date.minute())};
     let second = if date.second() > 9 {format!("{}", date.second())} else {format!("0{}", date.second())};
@@ -98,25 +97,20 @@ fn date_format(date: &DateTime<Local>) -> String {
     format!("{}, {} {} {}  {}:{}:{}", wd, month, day, date.year(), hour, minute, second)
 }
 
-
-pub fn render_html(template: String, res: &HashMap<String, FileMeta>, del: bool, show: bool, dir: String) -> String {
+pub fn render_html(template: String, res: &Vec<FileMeta>, del: bool, show: bool, dir: String) -> String {
     let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();
-        for (uri, name) in res {
+        for name in res {
             data = data.push_map(|builder| {
                 builder
-                    .insert_str("url", format!("/files/{}", uri))
+                    .insert_str("url", format!("/files/{}", name.name))
                     .insert_str("name", name.name.clone())
                     .insert_str("size", format_size(name.size))
                     .insert_bool("delete", del)
                     .insert_str("dir", "bla")
                     .insert_str("size-bytes", format!("{}", name.size))
                     .insert_str("time", format!("{}", name.modified_raw))
-                    .insert_str("modified",
-                                match name.modified {
-                                    Some(d) => date_format(&d),
-                                    None => "n/a".to_string()
-                                })
+                    .insert_str("modified", name.modified.clone())
             });
         }
         data
@@ -135,34 +129,15 @@ pub fn render_html(template: String, res: &HashMap<String, FileMeta>, del: bool,
 }
 
 
-pub fn render_json(res: &HashMap<String, FileMeta>) -> String {
+pub fn render_json(res: &Vec<FileMeta>) -> String {
     let mut response = String::new();
-    let tlen = res.len();
-
-    response.push_str("[\n");
-    for (i, (_, meta)) in res.iter().enumerate() {
-        response.push_str("  {\n");
-        response.push_str(&format!("    \"name\" : \"{}\",\n", meta.name.clone()));
-        response.push_str(&format!("    \"modified\" : \"{}\",\n", match meta.modified {
-            Some(d) => date_format(&d),
-            None => "n/a".to_string()
-        }));
-        response.push_str(&format!("    \"size\" : \"{}\",\n", format_size(meta.size)));
-        response.push_str(&format!("    \"size-bytes\" : \"{}\"\n", meta.size));
-        if i < (tlen - 1) {
-            response.push_str("  },\n");
-        } else {
-            response.push_str("  }\n");
-        }
-    }
-    response.push_str("]\n");
     response
 }
 
 
-pub fn render_plain(res: &HashMap<String, FileMeta>) -> String {
+pub fn render_plain(res: &Vec<FileMeta>) -> String {
     let mut response = String::new();
-    for (_, meta) in res {
+    for meta in res {
         response.push_str(&format!("{}\n", meta.name.clone()));
     }
     response

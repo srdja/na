@@ -28,6 +28,11 @@ use chrono::offset::local::Local;
 use chrono::offset::LocalResult;
 use std::time::Duration;
 
+use template;
+
+use chrono::Datelike;
+use chrono::Timelike;
+use chrono::Weekday;
 
 pub struct Directory {
     pub root: PathBuf,
@@ -37,7 +42,7 @@ pub struct Directory {
 pub struct FileMeta {
     pub name: String,
     pub size: u64,
-    pub modified: Option<DateTime<Local>>,
+    pub modified: String,
     pub modified_raw: u64
 }
 
@@ -53,8 +58,8 @@ impl Directory {
     /// Get a table of uri => filename from the root directory. Files are
     /// not listed recursively, only the base level files are listed.
     ///  Directories are ommited as well.
-    pub fn list_available_resources(&self) -> HashMap<String, FileMeta> {
-        let mut files: HashMap<String, FileMeta> = HashMap::new();
+    pub fn list_available_resources(&self) -> Vec<FileMeta> {
+        let mut files: Vec<FileMeta> = Vec::new();
         let paths = fs::read_dir(&(self.root)).unwrap();
 
         for p in paths {
@@ -77,12 +82,14 @@ impl Directory {
                     },
                     Err(_) => None
                 };
-                files.insert(
-                    pu.file_name().into_string().unwrap(),
+                files.push(
                     FileMeta {
                         name: pu.file_name().into_string().unwrap(),
                         size: pu.metadata().unwrap().len(),
-                        modified: date,
+                        modified: match date {
+                            Some(d) => template::date_format(&d),
+                            None => "n/a".to_string()
+                        },
                         modified_raw: pu.metadata().unwrap()
                             .modified().unwrap().duration_since(UNIX_EPOCH).unwrap().as_secs()
                     });
@@ -113,8 +120,19 @@ impl Directory {
     }
 
 
-    fn name_exists(&self, name: &String, files: &HashMap<String, FileMeta>) -> bool {
-        for v in files.values() {
+    pub fn get_resource<'a>(&self, name: &str, files: &'a Vec<FileMeta>)
+                        -> Option<&'a FileMeta> {
+        for file in files {
+            if file.name == name {
+                return Some(&file)
+            }
+        }
+        None
+    }
+
+
+    fn name_exists(&self, name: &String, files: &Vec<FileMeta>) -> bool {
+        for v in files {
             if v.name == *name {
                 return true;
             }
