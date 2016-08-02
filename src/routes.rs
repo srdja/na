@@ -52,7 +52,7 @@ pub struct HandlerState {
 
 pub struct FileDownloadHandler   (pub Arc<HandlerState>);
 pub struct FileUploadHandler     (pub Arc<HandlerState>, pub bool);
-pub struct IndexHandler          (pub Arc<HandlerState>, pub bool);
+pub struct IndexHandler          (pub Arc<HandlerState>, pub bool, pub bool, pub String);
 pub struct StaticResourceHandler (pub Arc<HandlerState>);
 pub struct JSONHandler           (pub Arc<HandlerState>);
 pub struct DeleteHandler         (pub Arc<HandlerState>, pub bool);
@@ -118,7 +118,8 @@ impl Handler for IndexHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
         let rendered = template::render_html(self.0.r.r.get("/resource/index.html")
-                                             .unwrap().to_string(), &resource, self.1);
+                                             .unwrap().to_string(), &resource, self.1,
+                                             self.2, self.3.clone());
         res.send(rendered.as_bytes()).unwrap();
     }
 }

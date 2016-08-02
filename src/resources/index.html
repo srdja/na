@@ -12,13 +12,22 @@
       <input type="submit" value="upload">
     </form>
     <div id="files">
-      Files:</br></br>
+      {{#header}}
+      <span id="dir-name">
+      {{#showdir}}
+      </br></br>
+      Showing contents of {{dir}}
+      </br></br>
+      {{/showdir}}
+      </span>
+      </br></br>
       <table id="file-table">
         <tr id="table-header">
           <th id="hname">Name</th>
           <th id="hmodified">Modified</th>
           <th id="hsize">Size</th>
           {{#delete}}<th id="hdelete"></th>{{/delete}}
+          {{/header}}
         </tr>
         {{#files}}
         <tr class="table-data">

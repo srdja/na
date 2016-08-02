@@ -97,6 +97,9 @@ fn main() {
     opts.optflag("o", "overwrite-file", "If set, uploaded files will\
                                          overwrite existing files with\
                                          the same name.");
+    opts.optflag("s", "show-directory", "If set, the name of the served \
+                                         directory will be displayed on \
+                                         html page");
     opts.optopt("i", "interface", "Specify an interface to use (eg. \"eth0\", \
                                    \"wlo0\", \"localhost\")", "INTERFACE");
     opts.optflag("6", "ipv6", "Use ipv6 if available");
@@ -195,7 +198,7 @@ fn main() {
         r: static_res
     });
 
-    let index_handler = IndexHandler(hs.clone(), matches.opt_present("r"));
+    let index_handler = IndexHandler(hs.clone(), matches.opt_present("r"), matches.opt_present("s"), str_path.clone());
     let dl_handler = FileDownloadHandler(hs.clone());
     let ul_handler = FileUploadHandler(hs.clone(), matches.opt_present("o"));
     let rs_handler = StaticResourceHandler(hs.clone());

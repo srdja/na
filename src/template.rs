@@ -99,18 +99,19 @@ fn date_format(date: &DateTime<Local>) -> String {
 }
 
 
-pub fn render_html(template: String, res: &HashMap<String, FileMeta>, del: bool) -> String {
+pub fn render_html(template: String, res: &HashMap<String, FileMeta>, del: bool, show: bool, dir: String) -> String {
     let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();
         for (uri, name) in res {
             data = data.push_map(|builder| {
                 builder
                     .insert_str("url", format!("/files/{}", uri))
-                    .insert_str("name".to_string(), name.name.clone())
-                    .insert_str("size".to_string(), format_size(name.size))
-                    .insert_bool("delete".to_string(), del)
-                    .insert_str("size-bytes".to_string(), format!("{}", name.size))
-                    .insert_str("modified".to_string(),
+                    .insert_str("name", name.name.clone())
+                    .insert_str("size", format_size(name.size))
+                    .insert_bool("delete", del)
+                    .insert_str("dir", "bla")
+                    .insert_str("size-bytes", format!("{}", name.size))
+                    .insert_str("modified",
                                 match name.modified {
                                     Some(d) => date_format(&d),
                                     None => "n/a".to_string()
@@ -118,6 +119,11 @@ pub fn render_html(template: String, res: &HashMap<String, FileMeta>, del: bool)
             });
         }
         data
+    }).insert_map("header", |_| {
+        MapBuilder::new()
+            .insert_bool("showdir", show)
+            .insert_bool("delete", del)
+            .insert_str("dir", dir.clone())
     }).build();
 
     let mut buff: Vec<u8> = Vec::new();
