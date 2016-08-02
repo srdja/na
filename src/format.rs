@@ -18,7 +18,6 @@
  */
 
 
-use std::collections::HashMap;
 use std::string::String;
 use mustache::{self, VecBuilder, MapBuilder};
 use directory::FileMeta;

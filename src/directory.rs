@@ -19,20 +19,15 @@
 
 use std::fs;
 use std::path::PathBuf;
-use std::collections::HashMap;
 use std::time::UNIX_EPOCH;
 use chrono::naive::datetime::NaiveDateTime;
 use chrono::datetime::DateTime;
 use chrono::offset::TimeZone;
 use chrono::offset::local::Local;
 use chrono::offset::LocalResult;
-use std::time::Duration;
 
 use format;
 
-use chrono::Datelike;
-use chrono::Timelike;
-use chrono::Weekday;
 
 pub struct Directory {
     pub root: PathBuf,
