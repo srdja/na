@@ -97,6 +97,7 @@ pub fn date_format(date: &DateTime<Local>) -> String {
     format!("{}, {} {} {}  {}:{}:{}", wd, month, day, date.year(), hour, minute, second)
 }
 
+
 pub fn render_html(template: String, res: &Vec<FileMeta>, del: bool, show: bool, dir: String) -> String {
     let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();

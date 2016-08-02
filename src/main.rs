@@ -55,7 +55,7 @@ macro_rules! printerr_cond {
 mod ip;
 mod directory;
 mod routes;
-mod template;
+mod format;
 mod static_r;
 
 use getopts::Options;

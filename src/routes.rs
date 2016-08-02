@@ -37,7 +37,7 @@ use hyper::status::StatusCode;
 use hyper::uri::RequestUri;
 
 use directory::Directory;
-use template;
+use format;
 use static_r::Resource;
 
 use multipart::server::{Multipart, MultipartData};
