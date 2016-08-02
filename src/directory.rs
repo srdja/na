@@ -51,9 +51,6 @@ impl Directory {
         }
     }
 
-    /// Get a table of uri => filename from the root directory. Files are
-    /// not listed recursively, only the base level files are listed.
-    ///  Directories are ommited as well.
     pub fn list_available_resources(&self) -> Vec<FileMeta> {
         let mut files: Vec<FileMeta> = Vec::new();
         let paths = fs::read_dir(&(self.root)).unwrap();
@@ -94,8 +91,7 @@ impl Directory {
         files
     }
 
-    /// Returns the full path of a file with the name "name". The file
-    /// need not be an already existing file.
+
     pub fn full_path(&self, name: &str) -> PathBuf {
         let mut path = PathBuf::new();
         path.push(self.root.to_str().unwrap());

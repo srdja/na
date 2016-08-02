@@ -82,19 +82,20 @@ pub fn month(month: u32) -> String {
         10 => "Oct".to_string(),
         11 => "Nov".to_string(),
         12 => "Dec".to_string(),
-        _ => "--".to_string()
+        _ => "---".to_string()
     }
 }
 
 
 pub fn date(date: &DateTime<Local>) -> String {
-    let hour = if date.hour()   > 9 {format!("{}", date.hour())}   else {format!("0{}", date.hour())};
-    let minute = if date.minute() > 9 {format!("{}", date.minute())} else {format!("0{}", date.minute())};
-    let second = if date.second() > 9 {format!("{}", date.second())} else {format!("0{}", date.second())};
-    let day = if date.day() > 9 {format!("{}", date.day())} else {format!("0{}", date.day())};
-    let wd = weekday(date.weekday());
-    let month = month(date.month());
-    format!("{}, {} {} {}  {}:{}:{}", wd, month, day, date.year(), hour, minute, second)
+    format!("{}, {:02} {:02} {}  {:02}:{:02}:{:02}",
+            weekday(date.weekday()),
+            month(date.month()),
+            date.day(),
+            date.year(),
+            date.hour(),
+            date.minute(),
+            date.second())
 }
 
 

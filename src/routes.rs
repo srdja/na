@@ -122,9 +122,12 @@ pub fn handler_500(_: Request, mut res: Response) {
 impl Handler for IndexHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.directory.list_available_resources();
-        let rendered = format::html(self.0.resource.r.get("/resource/index.html")
-                                    .unwrap(), &resource, self.0.delete,
-                                    self.0.showdir, self.0.path.clone());
+        let rendered = format::html(
+            self.0.resource.r.get("/resource/index.html").unwrap(),
+            &resource,
+            self.0.delete,
+            self.0.showdir,
+            self.0.path.clone());
         res.send(rendered.as_bytes()).unwrap();
     }
 }
@@ -167,7 +170,6 @@ impl Handler for DeleteHandler {
         };
         println_cond!(self.0.verbose, "Receiving a DELETE request from {} for {}",
                       req.remote_addr.to_string(), uri);
-
 
         let segments: Vec<&str> = uri.split("/").collect();
         let str_name = segments.last().unwrap().to_string();
