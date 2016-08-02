@@ -187,7 +187,6 @@ impl Handler for DeleteHandler {
                     let stat: &mut StatusCode = res.status_mut();
                     *stat = StatusCode::Ok;
                 }
-//                res.headers_mut().set(Location("/".to_string()));
                 res.send(format!("Successfully deleted file {}\n",
                                  str_name)
                          .as_bytes()).unwrap();
@@ -280,9 +279,6 @@ impl Handler for FileDownloadHandler {
                       sent_total, len, req.remote_addr.to_string(), uri);
     }
 }
-
-
-
 
 
 #[derive(RustcDecodable, RustcEncodable)]
