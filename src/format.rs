@@ -29,7 +29,7 @@ use chrono::offset::local::Local;
 use chrono::Weekday;
 
 
-fn format_size(bytes: u64) -> String {
+fn size(bytes: u64) -> String {
     match bytes {
         b if b < 1000 => {
             return format!("{} b", b);
@@ -55,7 +55,8 @@ fn format_size(bytes: u64) -> String {
     }
 }
 
-pub fn weekday_to_string(wd: Weekday) -> String {
+
+pub fn weekday(wd: Weekday) -> String {
     match wd {
         Weekday::Mon => "Mon".to_string(),
         Weekday::Tue => "Tue".to_string(),
@@ -68,7 +69,7 @@ pub fn weekday_to_string(wd: Weekday) -> String {
 }
 
 
-pub fn month_to_string(month: u32) -> String {
+pub fn month(month: u32) -> String {
     match month {
         1 => "Jan".to_string(),
         2 => "Feb".to_string(),
@@ -87,18 +88,18 @@ pub fn month_to_string(month: u32) -> String {
 }
 
 
-pub fn date_format(date: &DateTime<Local>) -> String {
+pub fn date(date: &DateTime<Local>) -> String {
     let hour = if date.hour()   > 9 {format!("{}", date.hour())}   else {format!("0{}", date.hour())};
     let minute = if date.minute() > 9 {format!("{}", date.minute())} else {format!("0{}", date.minute())};
     let second = if date.second() > 9 {format!("{}", date.second())} else {format!("0{}", date.second())};
     let day = if date.day() > 9 {format!("{}", date.day())} else {format!("0{}", date.day())};
-    let wd = weekday_to_string(date.weekday());
-    let month = month_to_string(date.month());
+    let wd = weekday(date.weekday());
+    let month = month(date.month());
     format!("{}, {} {} {}  {}:{}:{}", wd, month, day, date.year(), hour, minute, second)
 }
 
 
-pub fn render_html(template: String, res: &Vec<FileMeta>, del: bool, show: bool, dir: String) -> String {
+pub fn html(template: String, res: &Vec<FileMeta>, del: bool, show: bool, dir: String) -> String {
     let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();
         for name in res {
@@ -106,7 +107,7 @@ pub fn render_html(template: String, res: &Vec<FileMeta>, del: bool, show: bool,
                 builder
                     .insert_str("url", format!("/files/{}", name.name))
                     .insert_str("name", name.name.clone())
-                    .insert_str("size", format_size(name.size))
+                    .insert_str("size", size(name.size))
                     .insert_bool("delete", del)
                     .insert_str("dir", "bla")
                     .insert_str("size-bytes", format!("{}", name.size))

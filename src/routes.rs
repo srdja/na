@@ -118,9 +118,9 @@ pub fn handler_500(_: Request, mut res: Response) {
 impl Handler for IndexHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
-        let rendered = format::render_html(self.0.r.r.get("/resource/index.html")
-                                             .unwrap().to_string(), &resource, self.1,
-                                             self.2, self.3.clone());
+        let rendered = format::html(self.0.r.r.get("/resource/index.html")
+                                    .unwrap().to_string(), &resource, self.1,
+                                    self.2, self.3.clone());
         res.send(rendered.as_bytes()).unwrap();
     }
 }

@@ -88,7 +88,7 @@ impl Directory {
                         name: pu.file_name().into_string().unwrap(),
                         size: pu.metadata().unwrap().len(),
                         modified: match date {
-                            Some(d) => format::date_format(&d),
+                            Some(d) => format::date(&d),
                             None => "n/a".to_string()
                         },
                         modified_raw: pu.metadata().unwrap()
