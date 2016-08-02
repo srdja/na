@@ -28,7 +28,7 @@ use chrono::offset::local::Local;
 use chrono::offset::LocalResult;
 use std::time::Duration;
 
-use template;
+use format;
 
 use chrono::Datelike;
 use chrono::Timelike;
@@ -87,7 +87,7 @@ impl Directory {
                         name: pu.file_name().into_string().unwrap(),
                         size: pu.metadata().unwrap().len(),
                         modified: match date {
-                            Some(d) => template::date_format(&d),
+                            Some(d) => format::date_format(&d),
                             None => "n/a".to_string()
                         },
                         modified_raw: pu.metadata().unwrap()

@@ -117,7 +117,7 @@ pub fn handler_500(_: Request, mut res: Response) {
 impl Handler for IndexHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
-        let rendered = template::render_html(self.0.r.r.get("/resource/index.html")
+        let rendered = format::render_html(self.0.r.r.get("/resource/index.html")
                                              .unwrap().to_string(), &resource, self.1,
                                              self.2, self.3.clone());
         res.send(rendered.as_bytes()).unwrap();
@@ -128,7 +128,7 @@ impl Handler for IndexHandler {
 impl Handler for PlainHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
-        let rendered = template::render_plain(&resource);
+        let rendered = format::render_plain(&resource);
         res.send(rendered.as_bytes()).unwrap();
     }
 }
@@ -138,7 +138,7 @@ impl Handler for PlainHandler {
 impl Handler for JSONHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
-        let rendered = template::render_json(&resource);
+        let rendered = format::render_json(&resource);
         res.send(rendered.as_bytes()).unwrap();
     }
 }
