@@ -1,6 +1,7 @@
 body {
     background-color: #fdfdfd;
     font-family: monospace;
+    color: #222;
 }
 
 #files {
@@ -14,6 +15,12 @@ body {
     width: 80%;
 }
 
+form {
+    padding-top: 15px;
+    padding-bottom: 20px;
+    text-align: center;
+}
+
 tr, td {
     padding: 8px;
     text-align: left;
@@ -22,6 +29,9 @@ tr, td {
 
 th {
     cursor: default;
+}
+
+.delete-button {
 }
 
 tr:hover {
@@ -39,6 +49,7 @@ a:link {
 
 a:hover {
     text-decoration: underline;
+    color: #FF3333;
 }
 
 a:visited {
