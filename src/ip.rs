@@ -23,7 +23,7 @@ use get_if_addrs;
 use std::cmp::Ordering;
 
 
-pub fn interface_exists(iface: String) -> bool {
+pub fn interface_exists(iface: &str) -> bool {
     if iface == "localhost" {
         return true;
     }
@@ -36,7 +36,7 @@ pub fn interface_exists(iface: String) -> bool {
 }
 
 
-pub fn get_iface_addr(iface: String, ipv6: bool) -> Result<String, String> {
+pub fn get_iface_addr(iface: &str, ipv6: bool) -> Result<String, String> {
     if iface == "localhost" {
         if ipv6 {
             return Ok("::1".to_string());

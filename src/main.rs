@@ -148,8 +148,8 @@ fn main() {
 
     let address = match matches.opt_str("i") {
         Some(a) => {
-            if ip::interface_exists(a.clone()) {
-                match ip::get_iface_addr(a, matches.opt_present("6")) {
+            if ip::interface_exists(&a) {
+                match ip::get_iface_addr(&a, matches.opt_present("6")) {
                     Ok(i)  => Some(i),
                     Err(e) => {
                         println!("{}", e);

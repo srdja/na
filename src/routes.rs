@@ -119,7 +119,7 @@ impl Handler for IndexHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.d.list_available_resources();
         let rendered = format::html(self.0.r.r.get("/resource/index.html")
-                                    .unwrap().to_string(), &resource, self.1,
+                                    .unwrap(), &resource, self.1,
                                     self.2, self.3.clone());
         res.send(rendered.as_bytes()).unwrap();
     }
@@ -177,7 +177,7 @@ impl Handler for DeleteHandler {
                 return;
             }
         };
-        let path = self.0.d.full_path(resource);
+        let path = self.0.d.full_path(&resource);
 
         match fs::remove_file(path.clone()) {
             Ok(_) => {
@@ -231,7 +231,7 @@ impl Handler for FileDownloadHandler {
                 return;
             }
         };
-        let path = self.0.d.full_path(resource);
+        let path = self.0.d.full_path(&resource);
         let meta = fs::metadata(&*path).unwrap();
         let mut file: File = File::open(&*path).unwrap();
         let len = meta.len() as usize;
@@ -313,9 +313,9 @@ impl Handler for FileUploadHandler {
                     let available_name = if self.1 {
                         src_name.clone()
                     } else {
-                        self.0.d.get_available_name(src_name.clone())
+                        self.0.d.get_available_name(&src_name)
                     };
-                    let path = self.0.d.full_path(available_name.clone());
+                    let path = self.0.d.full_path(&available_name);
                     match file.save_as(path) {
                         Ok(f) => {
                             let p = f.path.to_str().unwrap();

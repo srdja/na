@@ -101,17 +101,17 @@ impl Directory {
 
     /// Returns the full path of a file with the name "name". The file
     /// need not be an already existing file.
-    pub fn full_path(&self, name: String) -> PathBuf {
+    pub fn full_path(&self, name: &str) -> PathBuf {
         let mut path = PathBuf::new();
         path.push(self.root.to_str().unwrap());
-        path.push(name);
+        path.push(name.to_string());
         path
     }
 
 
-    pub fn get_available_name(&self, name: String) -> String {
+    pub fn get_available_name(&self, name: &str) -> String {
         let files = self.list_available_resources();
-        let mut aname = name.clone();
+        let mut aname = name.to_string();
         let mut num   = 1;
         while self.name_exists(&aname, &files) {
             aname = format!("{} ({})", name, num);
@@ -132,9 +132,9 @@ impl Directory {
     }
 
 
-    fn name_exists(&self, name: &String, files: &Vec<FileMeta>) -> bool {
+    fn name_exists(&self, name: &str, files: &Vec<FileMeta>) -> bool {
         for v in files {
-            if v.name == *name {
+            if v.name == name {
                 return true;
             }
         }
