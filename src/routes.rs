@@ -360,8 +360,8 @@ impl Handler for FileUploadHandler {
                                 });
                         },
                         Err(e) => {
-                            println_cond!(self.0.verbose, "Error: Couldn't save {} to disk! \
-                                                     {}", available_name, e);
+                            printerr_cond!(self.0.verbose, "Error: Couldn't save {} to disk! \
+                                                            {}", available_name, e);
                         }
                     }
                 },
