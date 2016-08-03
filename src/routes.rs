@@ -332,7 +332,17 @@ impl Handler for FileUploadHandler {
         while let Ok(Some(field)) = mpu.read_entry() {
             match field.data {
                 MultipartData::File(mut file) => {
-                    let src_name = file.filename().unwrap().to_string(); // FIXME: unwrap
+                    let src_name = match file.filename() {
+                        Some(n) => n.to_string(),
+                        None => {
+                            printerr_cond!(self.0.verbose,
+                                          "Error: Bad POST request from {}. \
+                                           File name missing!\n",
+                                           remote_address);
+                            handler_400(res, "Bad request (400). File name missing!\n");
+                            return;
+                        }
+                    };
                     let available_name = if self.0.overwrite {
                         src_name.clone()
                     } else {
