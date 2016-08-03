@@ -37,6 +37,7 @@ pub struct Directory {
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct FileMeta {
     pub name: String,
+    pub url: String,
     pub size: u64,
     pub modified: String,
     pub modified_raw: u64
@@ -78,6 +79,7 @@ impl Directory {
                 files.push(
                     FileMeta {
                         name: pu.file_name().into_string().unwrap(),
+                        url: format!("/files/{}", pu.file_name().into_string().unwrap()),
                         size: pu.metadata().unwrap().len(),
                         modified: match date {
                             Some(d) => format::date(&d),

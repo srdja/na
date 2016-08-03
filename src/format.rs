@@ -134,7 +134,7 @@ pub fn html(template: &str, res: &Vec<FileMeta>, del: bool, show: bool, dir: Str
 pub fn file_list(res: &Vec<FileMeta>) -> String {
     let mut response = String::new();
     for meta in res {
-        response.push_str(&format!("{}\n", meta.name.clone()));
+        response.push_str(&format!("/files/{}\n", meta.name.clone()));
     }
     response
 }
