@@ -88,35 +88,36 @@ fn main() {
 
     let mut opts = Options::new();
     opts.optflag("h", "help",
-                 "Print this help message");
+                 "print this help message and exit");
     opts.optopt("d", "dir",
-                "Path of the served directory. Working \
+                "specifies the path of the served directory. Working \
                  directory is served by default if none \
                  is pecified.", "PATH");
-    opts.optflag("r", "allow-remove",
-                 "If set, na will allow file deletions \
-                  trough DELETE requests");
+    opts.optflag("r", "enable-delete",
+                 "enables file deletions trough DELETE requests");
+    opts.optflag("u", "disable-upload",
+                 "disables file uploads");
     opts.optopt("p", "port",
-                "Port number", "NUMBER");
+                "port number", "NUMBER");
     opts.optflag("o", "overwrite-file",
-                 "If set, uploaded files will\
+                 "if set, uploaded files will\
                   overwrite existing files with\
                   the same name.");
     opts.optflag("s", "show-directory",
-                 "If set, the name of the served \
+                 "if set, the name of the served \
                   directory will be displayed on \
                   html page");
     opts.optopt("i", "interface",
-                "Specify an interface to use (eg. \"eth0\", \
+                "specify an interface to use (eg. \"eth0\", \
                  \"wlo0\", \"localhost\")", "INTERFACE");
     opts.optflag("6", "ipv6",
-                 "Use ipv6 if available");
+                 "prefer IPv6 if available");
     opts.optflag("l", "list-interfaces",
-                 "Print a list of available interfaces");
+                 "print a list of available network interfaces and exit");
     opts.optflag("v", "verbose",
-                 "Verbose output");
+                 "verbose output");
     opts.optflag("", "version",
-                 "Print version info");
+                 "print version info");
 
     let options = match opts.parse(&args[1..]) {
         Ok(m)  => m,
