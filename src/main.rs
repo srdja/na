@@ -152,7 +152,7 @@ fn main() {
     };
     let port = match options.opt_str("p") {
         Some(p) => p,
-        None    => "9000".to_string()
+        None    => "8888".to_string()
     };
     let address = match options.opt_str("i") {
         Some(a) => {
