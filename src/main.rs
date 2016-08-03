@@ -79,7 +79,7 @@ use std::path::PathBuf;
 use std::env;
 
 
-const VERSION: &'static str = "0.1.0";
+const VERSION: &'static str = "0.2.0";
 
 
 fn main() {
