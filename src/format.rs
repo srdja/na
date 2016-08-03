@@ -99,7 +99,12 @@ pub fn date(date: &DateTime<Local>) -> String {
 }
 
 
-pub fn html(template: &str, res: &Vec<FileMeta>, del: bool, show: bool, dir: String) -> String {
+pub fn html(template: &str,
+            res: &Vec<FileMeta>,
+            del: bool,
+            show: bool,
+            no_upload: bool,
+            dir: String) -> String {
     let root = MapBuilder::new().insert_vec("files", |_| {
         let mut data = VecBuilder::new();
         for name in res {
@@ -121,7 +126,8 @@ pub fn html(template: &str, res: &Vec<FileMeta>, del: bool, show: bool, dir: Str
             .insert_bool("showdir", show)
             .insert_bool("delete", del)
             .insert_str("dir", dir.clone())
-    }).build();
+    }).insert_bool("upload", !no_upload)
+        .build();
 
     let mut buff: Vec<u8> = Vec::new();
     let template = mustache::compile_str(template);

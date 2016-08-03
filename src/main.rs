@@ -207,6 +207,7 @@ fn main() {
         resource:  static_res,
         verbose:   options.opt_present("v"),
         delete:    options.opt_present("r"),
+        no_upload: options.opt_present("u"),
         showdir:   options.opt_present("s"),
         overwrite: options.opt_present("o"),
         path:      str_path.clone()

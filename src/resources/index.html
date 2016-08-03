@@ -7,10 +7,12 @@
     <script type="text/javascript" src="resource/script.js"></script>
   </head>
   <body>
+    {{#upload}}
     <form action="/" method="post" enctype="multipart/form-data">
       <input type="file" name="upload[]" id="filename" multiple>
       <input type="submit" value="upload">
     </form>
+    {{/upload}}
     <div id="files">
       {{#header}}
       <span id="dir-name">

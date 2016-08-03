@@ -49,6 +49,7 @@ pub struct HandlerState {
     pub directory: Directory,
     pub resource:  Resource,
     pub delete:    bool,
+    pub no_upload: bool,
     pub path:      String,
     pub showdir:   bool,
     pub overwrite: bool,
@@ -96,6 +97,17 @@ pub fn handler_405_delete(_: Request, mut res: Response) {
 }
 
 
+pub fn handler_405_post(_: Request, mut res: Response) {
+    {
+        let stat: &mut StatusCode = res.status_mut();
+        *stat = StatusCode::MethodNotAllowed;
+    }
+    let msg = "Method Not Allowed (405). POST is not enabled for \
+               /files resources.\n";
+    res.send(msg.as_bytes()).unwrap();
+}
+
+
 pub fn handler_405(_: Request, mut res: Response) {
     {
         let stat: &mut StatusCode = res.status_mut();
@@ -127,6 +139,7 @@ impl Handler for IndexHandler {
             &resource,
             self.0.delete,
             self.0.showdir,
+            self.0.no_upload,
             self.0.path.clone());
         res.send(rendered.as_bytes()).unwrap();
     }
@@ -296,6 +309,10 @@ pub struct SavedFile {
 
 impl Handler for FileUploadHandler {
     fn handle(&self, req: Request, mut res: Response) {
+        if self.0.no_upload {
+            handler_405_post(req, res);
+            return;
+        }
         let remote_address = req.remote_addr.to_string();
         println_cond!(self.0.verbose, "Receiving a POST request from {}",
                       remote_address);
