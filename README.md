@@ -136,6 +136,17 @@ Make **na** readable and executable for all users:
 sudo chmod a+rx /usr/local/bin/na
 ```
 
+#### OS X 
+Download **na**:  
+```
+sudo curl -L https://github.com/srdja/na/releases/download/v0.2.0/na-osx -o /usr/local/bin/na
+```
+
+Make **na** readable and executable for all users:  
+```
+sudo chmod a+rx /usr/local/bin/na
+```
+
 #### Windows  
 Download the **na** [executable](https://github.com/srdja/na/releases/download/v0.2.0/na-win64.exe) and place 
 it into a directory that you wish to share, or you can put it into a directory that's in your `PATH` if you
