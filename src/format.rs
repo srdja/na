@@ -68,7 +68,7 @@ pub fn weekday(wd: Weekday) -> String {
 }
 
 
-pub fn month(month: u32) -> String {
+pub fn month(month: u8) -> String {
     match month {
         1 => "Jan".to_string(),
         2 => "Feb".to_string(),
