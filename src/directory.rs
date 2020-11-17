@@ -48,7 +48,7 @@ impl Directory {
 
     pub fn new(root: PathBuf) -> Directory {
         Directory {
-            root: root,
+            root,
         }
     }
 
