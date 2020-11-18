@@ -29,27 +29,27 @@ use chrono::Weekday;
 
 
 fn size(bytes: u64) -> String {
-    match bytes {
+    return match bytes {
         b if b < 1000 => {
-            return format!("{} b", b);
+            format!("{} b", b)
         },
-        b @ 1000 ... 999999 => {
+        b @ 1000...999999 => {
             let kb = b / 1000;
             let rm = (b % 1000) / 10;
-            return format!("{}.{} Kb", kb, rm);
+            format!("{}.{} Kb", kb, rm)
         },
-        b @ 1000000 ... 999999999 => {
+        b @ 1000000...999999999 => {
             let mb = b / 1000000;
             let rm = (b % 1000000) / 10000;
-            return format!("{}.{} Mb", mb, rm);
+            format!("{}.{} Mb", mb, rm)
         },
         b if b > 999999999 => {
             let gb = b / 1000000000;
             let rm = (b % 1000000000) / 10000000;
-            return format!("{}.{} Gb", gb, rm);
+            format!("{}.{} Gb", gb, rm)
         },
         _ => {
-            return format!("n/a");
+            format!("n/a")
         }
     }
 }
