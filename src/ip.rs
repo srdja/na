@@ -38,10 +38,10 @@ pub fn interface_exists(iface: &str) -> bool {
 
 pub fn get_iface_addr(iface: &str, ipv6: bool) -> Result<String, String> {
     if iface == "localhost" {
-        if ipv6 {
-            return Ok("::1".to_string());
+        return if ipv6 {
+            Ok("::1".to_string())
         } else {
-            return Ok("127.0.0.1".to_string());
+            Ok("127.0.0.1".to_string())
         }
     }
     let ifaces = get_if_addrs::get_if_addrs().unwrap();
