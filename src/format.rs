@@ -26,6 +26,9 @@ use chrono::Timelike;
 use chrono::datetime::DateTime;
 use chrono::offset::local::Local;
 use chrono::Weekday;
+use hyper::method::Method;
+use std::convert::TryFrom;
+use month::{month, Month};
 
 
 fn size(bytes: u64) -> String {
@@ -33,12 +36,12 @@ fn size(bytes: u64) -> String {
         b if b < 1000 => {
             format!("{} b", b)
         },
-        b @ 1000...999999 => {
+        b @ 1000..=999999 => {
             let kb = b / 1000;
             let rm = (b % 1000) / 10;
             format!("{}.{} Kb", kb, rm)
         },
-        b @ 1000000...999999999 => {
+        b @ 1000000..=999999999 => {
             let mb = b / 1000000;
             let rm = (b % 1000000) / 10000;
             format!("{}.{} Mb", mb, rm)
@@ -55,42 +58,22 @@ fn size(bytes: u64) -> String {
 }
 
 
-pub fn weekday(wd: Weekday) -> String {
-    match wd {
-        Weekday::Mon => "Mon".to_string(),
-        Weekday::Tue => "Tue".to_string(),
-        Weekday::Wed => "Wed".to_string(),
-        Weekday::Thu => "Thu".to_string(),
-        Weekday::Fri => "Fri".to_string(),
-        Weekday::Sat => "Sat".to_string(),
-        Weekday::Sun => "Sun".to_string()
-    }
+pub fn weekday(weekday: Weekday) -> String {
+    match weekday {
+        Weekday::Mon => "Mon",
+        Weekday::Tue => "Tue",
+        Weekday::Wed => "Wed",
+        Weekday::Thu => "Thu",
+        Weekday::Fri => "Fri",
+        Weekday::Sat => "Sat",
+        Weekday::Sun => "Sun"
+    }.to_string()
 }
-
-
-pub fn month(month: u8) -> String {
-    match month {
-        1 => "Jan".to_string(),
-        2 => "Feb".to_string(),
-        3 => "Mar".to_string(),
-        4 => "Apr".to_string(),
-        5 => "May".to_string(),
-        6 => "Jun".to_string(),
-        7 => "Jul".to_string(),
-        8 => "Aug".to_string(),
-        9 => "Sep".to_string(),
-        10 => "Oct".to_string(),
-        11 => "Nov".to_string(),
-        12 => "Dec".to_string(),
-        _ => "---".to_string()
-    }
-}
-
 
 pub fn date(date: &DateTime<Local>) -> String {
     format!("{}, {:02} {:02} {}  {:02}:{:02}:{:02}",
             weekday(date.weekday()),
-            month(date.month()),
+            month(Month::try_from(date.month()).expect("Could not parse date.month u32 into Month?")),
             date.day(),
             date.year(),
             date.hour(),
@@ -130,7 +113,7 @@ pub fn html(template: &str,
         .build();
 
     let mut buff: Vec<u8> = Vec::new();
-    let template = mustache::compile_str(template);
+    let template = mustache::compile_str(template).expect("could not compile str");
     template.render_data(&mut buff, &root);
 
     String::from_utf8(buff).unwrap()
