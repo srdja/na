@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-pub enum Month{
+pub enum Month {
     Jan,
     Feb,
     Mar,
@@ -37,7 +37,6 @@ impl TryFrom<u32> for Month {
     }
 }
 
-
 pub fn month(month: Month) -> String {
     match month {
         Month::Jan => "Jan",
@@ -45,12 +44,13 @@ pub fn month(month: Month) -> String {
         Month::Mar => "Mar",
         Month::Apr => "Apr",
         Month::May => "May",
-        Month::Jun=> "Jun",
-        Month::Jul=> "Jul",
-        Month::Aug=> "Aug",
+        Month::Jun => "Jun",
+        Month::Jul => "Jul",
+        Month::Aug => "Aug",
         Month::Sep => "Sep",
-        Month::Oct=> "Oct",
-        Month::Nov=> "Nov",
-        Month::Dec=> "Dec",
-    }.to_string()
+        Month::Oct => "Oct",
+        Month::Nov => "Nov",
+        Month::Dec => "Dec",
+    }
+    .to_string()
 }

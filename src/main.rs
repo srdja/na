@@ -17,29 +17,25 @@
  * along with na.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #![feature(ip)]
 
-
+extern crate chrono;
+extern crate get_if_addrs;
 extern crate getopts;
 extern crate hyper;
-extern crate mime;
-extern crate regex;
-extern crate url;
-extern crate percent_encoding;
-extern crate mustache;
-extern crate get_if_addrs;
-extern crate multipart;
 extern crate hyper_router;
-extern crate chrono;
+extern crate mime;
+extern crate multipart;
+extern crate mustache;
+extern crate percent_encoding;
+extern crate regex;
 extern crate rustc_serialize;
-
+extern crate url;
 
 macro_rules! println_cond {
     ($b:expr, $($p:expr),+) => (
         if $b {println!($($p,)+)})
 }
-
 
 macro_rules! printerr_cond {
     ($b:expr, $($p:expr),+) => (
@@ -52,76 +48,84 @@ macro_rules! printerr_cond {
         })
 }
 
-mod ip;
 mod directory;
-mod routes;
 mod format;
-mod static_r;
+mod ip;
 mod month;
+mod routes;
+mod static_r;
 
+use directory::Directory;
 use getopts::Options;
 use hyper::server::Server;
-use hyper_router::{RouterBuilder, Route};
-use directory::Directory;
+use hyper_router::{Route, RouterBuilder};
 
-use routes::{HandlerState,
-             IndexHandler,
-             FileDownloadHandler,
-             ListHandler,
-             DeleteHandler,
-             FileUploadHandler,
-             JSONHandler,
-             StaticResourceHandler};
+use routes::{
+    DeleteHandler, FileDownloadHandler, FileUploadHandler, HandlerState, IndexHandler, JSONHandler,
+    ListHandler, StaticResourceHandler,
+};
 
 use static_r::Resource;
 
-use std::sync::Arc;
-use std::path::PathBuf;
 use std::env;
-
+use std::path::PathBuf;
+use std::sync::Arc;
 
 const VERSION: &'static str = "0.2.0";
-
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let program_name = args[0].clone();
 
     let mut opts = Options::new();
-    opts.optflag("h", "help",
-                 "print this help message and exit");
-    opts.optopt("d", "dir",
-                "specifies the path of the served directory. Working \
+    opts.optflag("h", "help", "print this help message and exit");
+    opts.optopt(
+        "d",
+        "dir",
+        "specifies the path of the served directory. Working \
                  directory is served by default if none \
-                 is pecified.", "PATH");
-    opts.optflag("r", "enable-delete",
-                 "enables file deletions trough DELETE requests");
-    opts.optflag("u", "disable-upload",
-                 "disables file uploads");
-    opts.optopt("p", "port",
-                "port number", "NUMBER");
-    opts.optflag("o", "overwrite-file",
-                 "if set, uploaded files will\
+                 is pecified.",
+        "PATH",
+    );
+    opts.optflag(
+        "r",
+        "enable-delete",
+        "enables file deletions trough DELETE requests",
+    );
+    opts.optflag("u", "disable-upload", "disables file uploads");
+    opts.optopt("p", "port", "port number", "NUMBER");
+    opts.optflag(
+        "o",
+        "overwrite-file",
+        "if set, uploaded files will\
                   overwrite existing files with\
-                  the same name.");
-    opts.optflag("s", "show-directory",
-                 "if set, the name of the served \
+                  the same name.",
+    );
+    opts.optflag(
+        "s",
+        "show-directory",
+        "if set, the name of the served \
                   directory will be displayed on \
-                  html page");
-    opts.optopt("i", "interface",
-                "specify an interface to use (eg. \"eth0\", \
-                 \"wlo0\", \"localhost\")", "INTERFACE");
-    opts.optflag("6", "ipv6",
-                 "prefer IPv6 if available");
-    opts.optflag("l", "list-interfaces",
-                 "print a list of available network interfaces and exit");
-    opts.optflag("v", "verbose",
-                 "verbose output");
-    opts.optflag("", "version",
-                 "print version info");
+                  html page",
+    );
+    opts.optopt(
+        "i",
+        "interface",
+        "specify an interface to use (eg. \"eth0\", \
+                 \"wlo0\", \"localhost\")",
+        "INTERFACE",
+    );
+    opts.optflag("6", "ipv6", "prefer IPv6 if available");
+    opts.optflag(
+        "l",
+        "list-interfaces",
+        "print a list of available network interfaces and exit",
+    );
+    opts.optflag("v", "verbose", "verbose output");
+    opts.optflag("", "version", "print version info");
 
     let options = match opts.parse(&args[1..]) {
-        Ok(m)  => m,
+        Ok(m) => m,
         Err(e) => {
             printerr_cond!(true, "Error: {}", e);
             return;
@@ -148,32 +152,34 @@ fn main() {
             let mut dir = PathBuf::new();
             dir.push(d);
             dir
-        },
-        None => env::current_dir().unwrap()
+        }
+        None => env::current_dir().unwrap(),
     };
     let port = match options.opt_str("p") {
         Some(p) => p,
-        None    => "8888".to_string()
+        None => "8888".to_string(),
     };
     let address = match options.opt_str("i") {
         Some(a) => {
             if ip::interface_exists(&a) {
                 match ip::get_iface_addr(&a, options.opt_present("6")) {
-                    Ok(i)  => Some(i),
+                    Ok(i) => Some(i),
                     Err(e) => {
                         println!("{}", e);
                         None
                     }
                 }
             } else {
-                printerr_cond!(true, "Error: Specified interface \
-                                      \"{}\" does not exist!", a);
+                printerr_cond!(
+                    true,
+                    "Error: Specified interface \
+                                      \"{}\" does not exist!",
+                    a
+                );
                 return;
             }
-        },
-        None => {
-            ip::get_local_addr(options.opt_present("6"))
         }
+        None => ip::get_local_addr(options.opt_present("6")),
     };
     let addr = match address {
         Some(a) => a,
@@ -183,44 +189,54 @@ fn main() {
         }
     };
 
-    let str_path   = current_dir.to_str().unwrap().clone().to_string();
-    let directory  = Directory::new(current_dir);
+    let str_path = current_dir.to_str().unwrap().clone().to_string();
+    let directory = Directory::new(current_dir);
     let static_res = Resource::new();
 
     let addr_and_port = format!("{}:{}", addr, port);
     let srv = match Server::http(&*addr_and_port) {
-        Ok(s)  => s,
+        Ok(s) => s,
         Err(e) => {
-            printerr_cond!(true, "Error: Unable to start na at ({}), {}",
-                           addr_and_port, e);
+            printerr_cond!(
+                true,
+                "Error: Unable to start na at ({}), {}",
+                addr_and_port,
+                e
+            );
             return;
         }
     };
 
     if options.opt_present("6") {
-        println!("Serving contents of {} at http://[{}]:{}", str_path, addr, port);
+        println!(
+            "Serving contents of {} at http://[{}]:{}",
+            str_path, addr, port
+        );
     } else {
-        println!("Serving contents of {} at http://{}", str_path, addr_and_port);
+        println!(
+            "Serving contents of {} at http://{}",
+            str_path, addr_and_port
+        );
     }
 
     let hs = Arc::new(HandlerState {
         directory: directory,
-        resource:  static_res,
-        verbose:   options.opt_present("v"),
-        delete:    options.opt_present("r"),
+        resource: static_res,
+        verbose: options.opt_present("v"),
+        delete: options.opt_present("r"),
         no_upload: options.opt_present("u"),
-        showdir:   options.opt_present("s"),
+        showdir: options.opt_present("s"),
         overwrite: options.opt_present("o"),
-        path:      str_path.clone()
+        path: str_path.clone(),
     });
 
-    let index_handler    = IndexHandler(hs.clone());
-    let file_dl_handler  = FileDownloadHandler(hs.clone());
-    let file_ul_handler  = FileUploadHandler(hs.clone());
+    let index_handler = IndexHandler(hs.clone());
+    let file_dl_handler = FileDownloadHandler(hs.clone());
+    let file_ul_handler = FileUploadHandler(hs.clone());
     let resource_handler = StaticResourceHandler(hs.clone());
-    let json_handler     = JSONHandler(hs.clone());
-    let delete_handler   = DeleteHandler(hs.clone());
-    let list_handler     = ListHandler(hs.clone());
+    let json_handler = JSONHandler(hs.clone());
+    let delete_handler = DeleteHandler(hs.clone());
+    let list_handler = ListHandler(hs.clone());
 
     let router = RouterBuilder::new()
         .add(Route::get(r"(/|/index.html)").using(index_handler))
@@ -238,17 +254,18 @@ fn main() {
     let _ = srv.handle(router);
 }
 
-
 fn print_help(name: &str, opts: Options) {
     let brief = format!("Usage: {} [OPTIONS]", name);
     println!("{}", opts.usage(&brief));
 }
 
-
 fn print_version_info() {
-    println!("na {}
+    println!(
+        "na {}
 Copyright (C) 2016 Srđan Panić <sp@srdja.me>.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.", VERSION);
+There is NO WARRANTY, to the extent permitted by law.",
+        VERSION
+    );
 }
