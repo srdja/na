@@ -24,7 +24,7 @@ use std::fs::File;
 use std::sync::Arc;
 use std::str;
 use std::ops::Deref;
-use url::percent_encoding::percent_decode;
+use percent_encoding::percent_decode;
 use rustc_serialize::json;
 
 use hyper::header::ContentDisposition;
