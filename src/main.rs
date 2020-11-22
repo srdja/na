@@ -26,6 +26,7 @@ extern crate hyper;
 extern crate mime;
 extern crate regex;
 extern crate url;
+extern crate percent_encoding;
 extern crate mustache;
 extern crate get_if_addrs;
 extern crate multipart;
@@ -51,12 +52,12 @@ macro_rules! printerr_cond {
         })
 }
 
-
 mod ip;
 mod directory;
 mod routes;
 mod format;
 mod static_r;
+mod month;
 
 use getopts::Options;
 use hyper::server::Server;
