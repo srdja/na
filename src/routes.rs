@@ -17,21 +17,21 @@
  * along with na.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-use std::fs;
-use std::io::Write;
-use std::io::Read;
-use std::fs::File;
-use std::sync::Arc;
-use std::str;
-use std::ops::Deref;
-use url::percent_encoding::percent_decode;
+use percent_encoding::percent_decode;
 use rustc_serialize::json;
+use std::fs;
+use std::fs::File;
+use std::io::Read;
+use std::io::Write;
+use std::ops::Deref;
+use std::str;
+use std::sync::Arc;
 
-use hyper::header::ContentDisposition;
-use hyper::header::DispositionType;
-use hyper::header::DispositionParam;
 use hyper::header::Charset;
+use hyper::header::ContentDisposition;
 use hyper::header::ContentLength;
+use hyper::header::DispositionParam;
+use hyper::header::DispositionType;
 use hyper::header::Location;
 use hyper::server::{Handler, Request, Response};
 use hyper::status::StatusCode;
@@ -43,27 +43,24 @@ use static_r::Resource;
 
 use multipart::server::{Multipart, MultipartData};
 
-
 pub struct HandlerState {
-    pub verbose:   bool,
+    pub verbose: bool,
     pub directory: Directory,
-    pub resource:  Resource,
-    pub delete:    bool,
+    pub resource: Resource,
+    pub delete: bool,
     pub no_upload: bool,
-    pub path:      String,
-    pub showdir:   bool,
+    pub path: String,
+    pub showdir: bool,
     pub overwrite: bool,
 }
 
-
-pub struct FileDownloadHandler   (pub Arc<HandlerState>);
-pub struct FileUploadHandler     (pub Arc<HandlerState>);
-pub struct IndexHandler          (pub Arc<HandlerState>);
-pub struct StaticResourceHandler (pub Arc<HandlerState>);
-pub struct JSONHandler           (pub Arc<HandlerState>);
-pub struct DeleteHandler         (pub Arc<HandlerState>);
-pub struct ListHandler           (pub Arc<HandlerState>);
-
+pub struct FileDownloadHandler(pub Arc<HandlerState>);
+pub struct FileUploadHandler(pub Arc<HandlerState>);
+pub struct IndexHandler(pub Arc<HandlerState>);
+pub struct StaticResourceHandler(pub Arc<HandlerState>);
+pub struct JSONHandler(pub Arc<HandlerState>);
+pub struct DeleteHandler(pub Arc<HandlerState>);
+pub struct ListHandler(pub Arc<HandlerState>);
 
 pub fn handler_400(mut res: Response, msg: &str) {
     {
@@ -72,7 +69,6 @@ pub fn handler_400(mut res: Response, msg: &str) {
     }
     res.send(msg.as_bytes()).unwrap();
 }
-
 
 pub fn handler_404(_: Request, mut res: Response) {
     {
@@ -85,7 +81,6 @@ pub fn handler_404(_: Request, mut res: Response) {
     res.send(msg.as_bytes()).unwrap();
 }
 
-
 pub fn handler_405_delete(_: Request, mut res: Response) {
     {
         let stat: &mut StatusCode = res.status_mut();
@@ -95,7 +90,6 @@ pub fn handler_405_delete(_: Request, mut res: Response) {
                /files resources.\n";
     res.send(msg.as_bytes()).unwrap();
 }
-
 
 pub fn handler_405_post(_: Request, mut res: Response) {
     {
@@ -107,7 +101,6 @@ pub fn handler_405_post(_: Request, mut res: Response) {
     res.send(msg.as_bytes()).unwrap();
 }
 
-
 pub fn handler_405(_: Request, mut res: Response) {
     {
         let stat: &mut StatusCode = res.status_mut();
@@ -116,7 +109,6 @@ pub fn handler_405(_: Request, mut res: Response) {
     let msg = "Method Not Allowed (405)\n";
     res.send(msg.as_bytes()).unwrap();
 }
-
 
 pub fn handler_500(_: Request, mut res: Response) {
     {
@@ -130,7 +122,6 @@ pub fn handler_500(_: Request, mut res: Response) {
     res.send(msg.as_bytes()).unwrap();
 }
 
-
 impl Handler for IndexHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.directory.list_available_resources();
@@ -140,11 +131,11 @@ impl Handler for IndexHandler {
             self.0.delete,
             self.0.showdir,
             self.0.no_upload,
-            self.0.path.clone());
+            self.0.path.clone(),
+        );
         res.send(rendered.as_bytes()).unwrap();
     }
 }
-
 
 impl Handler for ListHandler {
     fn handle(&self, _: Request, res: Response) {
@@ -154,7 +145,6 @@ impl Handler for ListHandler {
     }
 }
 
-
 impl Handler for JSONHandler {
     fn handle(&self, _: Request, res: Response) {
         let resource = self.0.directory.list_available_resources();
@@ -162,7 +152,6 @@ impl Handler for JSONHandler {
         res.send(rendered.as_bytes()).unwrap();
     }
 }
-
 
 impl Handler for DeleteHandler {
     fn handle(&self, req: Request, mut res: Response) {
@@ -173,16 +162,22 @@ impl Handler for DeleteHandler {
         let resources = self.0.directory.list_available_resources();
 
         let uri: String = match req.uri {
-            RequestUri::AbsolutePath(ref path) => {
-                percent_decode((&path).as_bytes()).decode_utf8().unwrap().deref().to_string()
-            },
+            RequestUri::AbsolutePath(ref path) => percent_decode((&path).as_bytes())
+                .decode_utf8()
+                .unwrap()
+                .deref()
+                .to_string(),
             _ => {
                 handler_404(req, res);
                 return;
             }
         };
-        println_cond!(self.0.verbose, "Receiving a DELETE request from {} for {}",
-                      req.remote_addr.to_string(), uri);
+        println_cond!(
+            self.0.verbose,
+            "Receiving a DELETE request from {} for {}",
+            req.remote_addr.to_string(),
+            uri
+        );
 
         let segments: Vec<&str> = uri.split("/").collect();
         let str_name = segments.last().unwrap().to_string();
@@ -206,13 +201,15 @@ impl Handler for DeleteHandler {
                     let stat: &mut StatusCode = res.status_mut();
                     *stat = StatusCode::Ok;
                 }
-                res.send(format!("Successfully deleted file {}\n",
-                                 str_name)
-                         .as_bytes()).unwrap();
+                res.send(format!("Successfully deleted file {}\n", str_name).as_bytes())
+                    .unwrap();
 
-                println_cond!(self.0.verbose, "Sending status code {}",
-                              StatusCode::Ok.to_string());
-            },
+                println_cond!(
+                    self.0.verbose,
+                    "Sending status code {}",
+                    StatusCode::Ok.to_string()
+                );
+            }
             Err(e) => {
                 printerr_cond!(self.0.verbose, "Error: {}", e);
                 handler_500(req, res);
@@ -221,22 +218,27 @@ impl Handler for DeleteHandler {
     }
 }
 
-
 impl Handler for FileDownloadHandler {
     fn handle(&self, req: Request, mut res: Response) {
         let resources = self.0.directory.list_available_resources();
 
         let uri: String = match req.uri {
-            RequestUri::AbsolutePath(ref path) => {
-                percent_decode((&path).as_bytes()).decode_utf8().unwrap().deref().to_string()
-            },
+            RequestUri::AbsolutePath(ref path) => percent_decode((&path).as_bytes())
+                .decode_utf8()
+                .unwrap()
+                .deref()
+                .to_string(),
             _ => {
                 handler_404(req, res);
                 return;
             }
         };
-        println_cond!(self.0.verbose, "Receiving a GET request from {} for {}",
-                       req.remote_addr.to_string(), uri);
+        println_cond!(
+            self.0.verbose,
+            "Receiving a GET request from {} for {}",
+            req.remote_addr.to_string(),
+            uri
+        );
 
         let segments: Vec<&str> = uri.split("/").collect();
         let str_name = segments.last().unwrap().to_string();
@@ -261,7 +263,9 @@ impl Handler for FileDownloadHandler {
             parameters: vec![DispositionParam::Filename(
                 Charset::Ext("UTF-8".to_string()),
                 None,
-                name)]});
+                name,
+            )],
+        });
 
         let mut stream = res.start().unwrap();
         let mut buffer: [u8; 8192] = [0; 8192];
@@ -270,22 +274,32 @@ impl Handler for FileDownloadHandler {
 
         while read_total < len {
             let read: usize = match file.read(&mut buffer) {
-                Ok (b) => b,
+                Ok(b) => b,
                 Err(e) => {
-                    printerr_cond!(self.0.verbose,
-                                  "Error: Unexpected end of stream while reading {}, \
+                    printerr_cond!(
+                        self.0.verbose,
+                        "Error: Unexpected end of stream while reading {}, \
                                    {} bytes read out of {}. [{}]",
-                                  path.as_path().to_str().unwrap(), read_total, len, e);
+                        path.as_path().to_str().unwrap(),
+                        read_total,
+                        len,
+                        e
+                    );
                     return;
                 }
             };
-            let sent: usize = match stream.write(&buffer[0 .. read]) {
-                Ok (b) => b,
+            let sent: usize = match stream.write(&buffer[0..read]) {
+                Ok(b) => b,
                 Err(e) => {
-                    printerr_cond!(self.0.verbose,
-                                  "Error: Unexpected end of stream while sending {}, \
+                    printerr_cond!(
+                        self.0.verbose,
+                        "Error: Unexpected end of stream while sending {}, \
                                    {} bytes sent out of {}. [{}]",
-                                  path.as_path().to_str().unwrap(), sent_total, len, e);
+                        path.as_path().to_str().unwrap(),
+                        sent_total,
+                        len,
+                        e
+                    );
                     return;
                 }
             };
@@ -294,18 +308,22 @@ impl Handler for FileDownloadHandler {
         }
         stream.end().unwrap();
 
-        println_cond!(self.0.verbose, "Sent a total of {} out of {} bytes to {} for request {}",
-                      sent_total, len, req.remote_addr.to_string(), uri);
+        println_cond!(
+            self.0.verbose,
+            "Sent a total of {} out of {} bytes to {} for request {}",
+            sent_total,
+            len,
+            req.remote_addr.to_string(),
+            uri
+        );
     }
 }
-
 
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct SavedFile {
     source_name: String,
-    saved_name:  String
+    saved_name: String,
 }
-
 
 impl Handler for FileUploadHandler {
     fn handle(&self, req: Request, mut res: Response) {
@@ -314,14 +332,20 @@ impl Handler for FileUploadHandler {
             return;
         }
         let remote_address = req.remote_addr.to_string();
-        println_cond!(self.0.verbose, "Receiving a POST request from {}",
-                      remote_address);
+        println_cond!(
+            self.0.verbose,
+            "Receiving a POST request from {}",
+            remote_address
+        );
 
         let multipart = Multipart::from_request(req).ok();
         if multipart.is_none() {
-            printerr_cond!(self.0.verbose, "Error: Bad POST request from {}. \
+            printerr_cond!(
+                self.0.verbose,
+                "Error: Bad POST request from {}. \
                                      Multipart missing!",
-                          remote_address);
+                remote_address
+            );
             handler_400(res, "400 Bad Request. Multipart missing!\n");
             return;
         }
@@ -335,10 +359,12 @@ impl Handler for FileUploadHandler {
                     let src_name = match file.filename() {
                         Some(n) => n.to_string(),
                         None => {
-                            printerr_cond!(self.0.verbose,
-                                          "Error: Bad POST request from {}. \
+                            printerr_cond!(
+                                self.0.verbose,
+                                "Error: Bad POST request from {}. \
                                            File name missing!\n",
-                                           remote_address);
+                                remote_address
+                            );
                             handler_400(res, "Bad request (400). File name missing!\n");
                             return;
                         }
@@ -353,48 +379,59 @@ impl Handler for FileUploadHandler {
                         Ok(f) => {
                             let p = f.path.to_str().unwrap();
                             println_cond!(self.0.verbose, "Written {} bytes to {}", f.size, p);
-                            saved_files.push(
-                                SavedFile {
-                                    source_name: src_name.clone(),
-                                    saved_name: available_name.clone()
-                                });
-                        },
+                            saved_files.push(SavedFile {
+                                source_name: src_name.clone(),
+                                saved_name: available_name.clone(),
+                            });
+                        }
                         Err(e) => {
-                            printerr_cond!(self.0.verbose, "Error: Couldn't save {} to disk! \
-                                                            {}", available_name, e);
+                            printerr_cond!(
+                                self.0.verbose,
+                                "Error: Couldn't save {} to disk! \
+                                                            {}",
+                                available_name,
+                                e
+                            );
                         }
                     }
-                },
+                }
                 MultipartData::Text(_) => {}
             }
         }
-        {let stat = res.status_mut();
-         *stat = StatusCode::Found;}
+        {
+            let stat = res.status_mut();
+            *stat = StatusCode::Found;
+        }
 
         res.headers_mut().set(Location("/".to_string()));
 
         let saved_files_json = json::encode(&saved_files).unwrap();
 
-        res.send(format!("{}\n", saved_files_json).as_bytes()).unwrap();
+        res.send(format!("{}\n", saved_files_json).as_bytes())
+            .unwrap();
 
-        println_cond!(self.0.verbose, "Sending status code {}",
-                      StatusCode::Found.to_string());
-
+        println_cond!(
+            self.0.verbose,
+            "Sending status code {}",
+            StatusCode::Found.to_string()
+        );
     }
 }
-
 
 impl Handler for StaticResourceHandler {
     fn handle(&self, req: Request, res: Response) {
         let uri: String = match req.uri {
-            RequestUri::AbsolutePath(path) => {
-                percent_decode((&path).as_bytes()).decode_utf8().unwrap().deref().to_string()
-            },
+            RequestUri::AbsolutePath(path) => percent_decode((&path).as_bytes())
+                .decode_utf8()
+                .unwrap()
+                .deref()
+                .to_string(),
             RequestUri::AbsoluteUri(uri) => uri.to_string(),
-            _ => "fixme".to_string()
+            _ => "fixme".to_string(),
         };
         if self.0.resource.r.contains_key(uri.as_str()) {
-            res.send(self.0.resource.r.get(uri.as_str()).unwrap().as_bytes()).unwrap();
+            res.send(self.0.resource.r.get(uri.as_str()).unwrap().as_bytes())
+                .unwrap();
             return;
         }
     }
